@@ -9,9 +9,10 @@ from copy import copy, deepcopy
 import time
 import openpyxl
 import openpyxl.worksheet.cell_range
+from openpyxl.styles import Alignment
 
-timeout=7
-
+timeout=10
+timeout2=40
 def get_the_web():
     
     global timeout
@@ -135,6 +136,7 @@ def asignar_nro_proceso ():
                     continue
                 else:
                     print('Problema web al cargar resultados de la consulta')
+                    browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
                     continue
            
             
@@ -166,7 +168,7 @@ def asignar_nro_proceso ():
                     numero_proceso += str(i)   
                     lista_numeros_procesos.append(browser.find_element_by_id(numero_proceso).text)
                 except (NoSuchElementException):
-                        print('posiblemente hay 2 paginas de procesos')
+                        print('Posiblemente hay 2 paginas de procesos - Esto aun esta en construccion')
             
             #get the "fecha radicacion" from the excel file (database) to compare the dates from the table
             fecha_radicacion=db_sheet.cell(row=Nproce,column=20).value
@@ -177,13 +179,13 @@ def asignar_nro_proceso ():
                     print('Hay mas de un proceso con la misma fecha, numero no asignado')
                 else:
                     db_sheet.cell(row=Nproce,column=2).value= lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)]
-                    wb_database.save('Database-ProcessPrueba.xlsx')
+                    wb_database.save('Database-Process.xlsx')
                     print('Numero de Proceso Asignado -  OK')
                     create_excel_file (lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)])
                     browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
             else:
                 print('Numero de Proceso no encontrado')
-    print('DONE')
+    print('DONE - SIN ERRORES - CESAR PUTO AMO')
     browser.quit()
          
 #---------------------------Assign a process number in the excel file----------------------------#
@@ -191,14 +193,15 @@ def asignar_nro_proceso ():
 
 
 def create_excel_file (process_number_given):
+    global timeout
+    global timeout2
     
     browser=get_the_web()
-    
-    wb_database=openpyxl.load_workbook('Database-ProcessPrueba.xlsx')
+    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
     db_sheet=wb_database['Hoja1']
     number_process_column=db_sheet['B']
     process_numbers=[]
-    print('ef-1')
+    
     for cell in number_process_column:
         process_numbers.append(cell.value)
     fila_proceso=(process_numbers.index(process_number_given)+1)
@@ -214,7 +217,7 @@ def create_excel_file (process_number_given):
     dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=3).value)   
 
            
-    print('ef-2')
+    
     try:
         WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[2]/div/table/tbody/tr[3]/td[2]/select/option[2]")))                                
     except TimeoutException:
@@ -237,7 +240,7 @@ def create_excel_file (process_number_given):
         print("Problema web al dar click en la barra para iniciar la consulta - Excel no creado")
         browser.quit()
         return
-    print('ef-3')
+    
     inputElement7=browser.find_element_by_id("sliderBehaviorNumeroProceso_railElement")
     inputElement7.click()
 
@@ -245,7 +248,7 @@ def create_excel_file (process_number_given):
     btnconsulta.click()
     
     try:
-        WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.CLASS_NAME, "ActuacionesDetalle")))                                
+        WebDriverWait(browser, timeout2).until(EC.visibility_of_element_located((By.CLASS_NAME, "ActuacionesDetalle")))                                
     except TimeoutException:
         print("Problema web al cargar tabla de informacion de Actuaciones - Excel no creado")
         browser.quit()
@@ -261,17 +264,15 @@ def create_excel_file (process_number_given):
     demandados=browser.find_element_by_id('lblNomDemandado').text
     contenido=browser.find_element_by_id('lblContenido').text
     
-    print('ef-4')
-    
-    tabla_documentos=browser.find_element_by_class_name('DocumentosDetalle')
-    cantidad_documentos=tabla_documentos.find_elements_by_tag_name('tr')
     
     lista_documentos=[]
     lista_descrip_documentos=[]
     
     try:
         browser.find_element_by_id('rptDocumentos_lbNombreDoc_0')
-
+        tabla_documentos=browser.find_element_by_class_name('DocumentosDetalle')
+        cantidad_documentos=tabla_documentos.find_elements_by_tag_name('tr')
+        
         for i in range(len(cantidad_documentos)-1):
             nombre_documento='rptDocumentos_lbNombreDoc_'
             descripcion_documento='rptDocumentos_lblDescDoc_'
@@ -318,7 +319,7 @@ def create_excel_file (process_number_given):
         fecha_registro += str(i)
         lista_fecha_registro.append(browser.find_element_by_id(fecha_registro).text)
     
-    print('ef-5')
+    
     #Open Excel Workbook
     
     path='./Procesos/Formato_Base.xlsx'
@@ -341,33 +342,44 @@ def create_excel_file (process_number_given):
     main_sheet['Z14'].value=demandados
     main_sheet['C19'].value=contenido
     
+    empty_row_doc=26
+    
     if lista_documentos:
-        empty_row_doc=27
+        
         style_source='C26'
         
         #merged=main_sheet.merged_cells.ranges
         #for i in merged:
         #    i.shift(0,3)        
-        main_sheet.insert_rows(empty_row_doc, (len(lista_documentos)-1))
+        main_sheet.insert_rows(empty_row_doc+1, (len(lista_documentos)-1))
+        
         
         for i in range(len(lista_documentos)):
-            '''
+            
+            main_sheet.cell(row=(empty_row_doc+i),column=3).value=lista_documentos[i]
+            main_sheet.cell(row=(empty_row_doc+i),column=26).value=lista_descrip_documentos[i]
+            
             main_sheet.cell(row=(empty_row_doc+i), column=3)._style=deepcopy(main_sheet[style_source]._style)
             main_sheet.merge_cells(start_row=empty_row_doc+i, start_column=3, end_row=empty_row_doc+i, end_column=3+22)
-            main_sheet.cell(row=(empty_row_doc+i), column=24)._style=deepcopy(main_sheet[style_source]._style)
-            main_sheet.merge_cells(start_row=empty_row_doc+i, start_column=24, end_row=empty_row_doc+i, end_column=24+22)        
-            '''
-            
+            main_sheet.cell(row=(empty_row_doc+i), column=26)._style=deepcopy(main_sheet[style_source]._style)
+            main_sheet.merge_cells(start_row=empty_row_doc+i, start_column=26, end_row=empty_row_doc+i, end_column=26+22)        
 
-            print('ok')
     else:
-        pass
+        main_sheet.cell(row=(empty_row_doc),column=3).value="No hay Documentos Asociados"
+        alignment = Alignment(horizontal='center',vertical='bottom',text_rotation=0,wrap_text=False,shrink_to_fit=True,indent=0)
+        
+        
+        main_sheet.merge_cells(start_row=empty_row_doc, start_column=3, end_row=empty_row_doc, end_column=3+45)
+        main_sheet.cell(row=(empty_row_doc),column=3).alignment=alignment
+    
+    #define the row number, in which the title "Actuaciones del proceso" is contained
+    if not lista_documentos:
+        st_row=empty_row_doc+3+(len(lista_documentos))
+    else:
+        st_row=empty_row_doc+3+(len(lista_documentos)-1)
     
     
-    #define the first empty row number, in which the algorythm will write "Actuaciones del Proceso" in Excel
-    empty_row=31
-    st_row=31
-    main_sheet.merge_cells(start_row=st_row, start_column=3, end_row=empty_row, end_column=3+45)
+    main_sheet.merge_cells(start_row=st_row, start_column=3, end_row=st_row, end_column=3+45)
     main_sheet.merge_cells(start_row=st_row+1, start_column=3, end_row=st_row+1, end_column=3+3)
     main_sheet.merge_cells(start_row=st_row+1, start_column=7, end_row=st_row+1, end_column=7+3)
     main_sheet.merge_cells(start_row=st_row+1, start_column=11, end_row=st_row+1, end_column=11+25)
@@ -375,16 +387,16 @@ def create_excel_file (process_number_given):
     main_sheet.merge_cells(start_row=st_row+1, start_column=41, end_row=st_row+1, end_column=41+3)
     main_sheet.merge_cells(start_row=st_row+1, start_column=45, end_row=st_row+1, end_column=45+3)
     
-    #while (main_sheet.cell(row = empty_row, column = 3).value != None) :
-     #         empty_row += 1
-      #        print(empty_row)
     
+    
+    
+    #define the row number, in which the algorithm will start writing the "actuaciones"
+    empty_row=st_row+2
     #Define the cell to copy the style
     style_source='C31'
-    '''    
+        
     for i in range (len(lista_fecha_actuaciones)):
-        
-        
+                
         main_sheet.cell(row=(empty_row+i),column=3).value=lista_fecha_actuaciones[i]
         main_sheet.cell(row=(empty_row+i),column=7).value=lista_actuaciones[i]
         main_sheet.cell(row=(empty_row+i),column=11).value=lista_anotaciones[i]
@@ -405,10 +417,16 @@ def create_excel_file (process_number_given):
         main_sheet.merge_cells(start_row=empty_row+i, start_column=41, end_row=empty_row+i, end_column=41+3)
         main_sheet.cell(row=(empty_row+i), column=45)._style=deepcopy(main_sheet[style_source]._style)
         main_sheet.merge_cells(start_row=empty_row+i, start_column=45, end_row=empty_row+i, end_column=45+3)
-        '''
+        
+    
+    rd = main_sheet.row_dimensions[st_row] # get dimension for row 3
+    rd.height = 18 # value in points, there is no "auto"
+    
+    rd = main_sheet.row_dimensions[st_row+1]
+    rd.height = 27
+    
     browser.quit()
     new_path="./Procesos/" + process_number_given + '.xlsx'
     wb.save(new_path) 
     
-    print('Excel creado exitosamente, Cesar Crack')
-create_excel_file('05001233300020130198100')
+    print('Excel creado exitosamente - OK')

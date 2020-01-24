@@ -355,7 +355,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         sheet.cell(row = Nproce, column = 21).value =Apoderado
         self.apoderado_ini.Value=""
          
-        success_msgbox=wx.MessageDialog(None,'Registro añadido?????????','Status',wx.OK)
+        success_msgbox=wx.MessageDialog(None,'Registro añadido - Este mensaje aun no garantiza que nada haya fallado en el proceso de agregar el registro - /n EnConstruccion','Status',wx.OK)
         success_msgbox.ShowModal()
         
         DB.save('Database-Process.xlsx')
