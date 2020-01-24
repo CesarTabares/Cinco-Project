@@ -8,8 +8,9 @@ from copy import copy, deepcopy
 
 import time
 import openpyxl
+import openpyxl.worksheet.cell_range
 
-timeout=20
+timeout=7
 
 def get_the_web():
     
@@ -21,27 +22,24 @@ def get_the_web():
     
     # Create new Instance of Chrome in incognito mode
     browser = webdriver.Chrome('.\drivers\chromedriver', options=option)
+
     
+        
     # Go to desired website
     browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
     # Wait 20 seconds for page to load
-    
-    
-    
+
     try:
         # Wait until the final element [Avatar link] is loaded.
         # Assumption: If Avatar link is loaded, the whole page would be relatively loaded because it is among
         # the last things to be loaded.
-        WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.ID, "ddlEntidadEspecialidad")))
+        WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.CLASS_NAME, "pie")))
     except TimeoutException:
         print("Timed out waiting for page to load")
         browser.quit()
         
+        
     return browser
-
-
-
-
 
 
 #------------Get all the elements on the web and send the values on the excel file (database)-------------#
@@ -60,39 +58,60 @@ def asignar_nro_proceso ():
     
     for i in range(registered_process-1):
         Nproce +=1
-    
-    
-        if(db_sheet.cell(row=Nproce,column=12).value == None):
+        
+        if(db_sheet.cell(row=Nproce,column=2).value == None):
             
-            inputElement2 = browser.find_element_by_id("ddlCiudad")
-            inputElement2.send_keys(db_sheet.cell(row=Nproce,column=2).value)
-            
-            #sleep to give webpage time to load 'Entidades' according to the city name given.
-            time.sleep(1)
+            try: 
+                WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "ddlCiudad")))                               
+            except TimeoutException:
+                print("Problema web al seleccionar Ciudad")
+                browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
+                continue
+
+            dropdown_ciudad = Select(browser.find_element_by_id("ddlCiudad"))
+            dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=Nproce,column=3).value)
             
             try:
-                WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.ID, "ddlEntidadEspecialidad")))
-                
-                dropdown1= Select(browser.find_element_by_id('ddlEntidadEspecialidad'))
-                dropdown1.select_by_visible_text(db_sheet.cell(row=Nproce,column=3).value)
-                
+                WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[2]/div/table/tbody/tr[3]/td[2]/select/option[2]")))                                
             except TimeoutException:
-                print("No se encontro opcion Ciudad")
-                browser.quit()
+                print("Problema web al seleccionar la entidad")
+                browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
+                continue
             
-            inputElement3 = browser.find_element_by_id("rblConsulta")
-            inputElement3.send_keys("Consulta por Nombre o Razón social")
+            time.sleep(3) #NUNCA BORRAR ESTE HP SLEEP
+            
+            dropdown1= Select(browser.find_element_by_id('ddlEntidadEspecialidad'))
+            dropdown1.select_by_visible_text(db_sheet.cell(row=Nproce,column=4).value)
+            
+            try:
+                WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "rblConsulta")))                                
+            except TimeoutException:
+                print("Problema web al cargar tabla para ingresar parametros de consulta")
+                browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
+                continue
+            
+            
+            inputElement3 = Select(browser.find_element_by_id("rblConsulta"))
+            inputElement3.select_by_visible_text("Consulta por Nombre o Razón social")
         
-            inputElement4 = browser.find_element_by_id("ddlTipoSujeto") 
-            inputElement4.send_keys(db_sheet.cell(row=Nproce,column=5).value)
+            try:
+                WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "ddlTipoSujeto")))                                
+            except TimeoutException:
+                print("Problema web al cargar Tipo de Sujeto")
+                browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
+                continue
             
-            inputElement5 = browser.find_element_by_id("ddlTipoPersona")
-            inputElement5.send_keys(db_sheet.cell(row=Nproce,column=7).value)
+            
+            inputElement4 = Select(browser.find_element_by_id("ddlTipoSujeto"))
+            inputElement4.select_by_visible_text(db_sheet.cell(row=Nproce,column=6).value)
+            
+            inputElement5 = Select(browser.find_element_by_id("ddlTipoPersona"))
+            inputElement5.select_by_visible_text(db_sheet.cell(row=Nproce,column=7).value)
                 
             inputElement6 = browser.find_element_by_id("txtNatural")
             if inputElement6.text != None:
                 inputElement6.clear()
-            inputElement6.send_keys(db_sheet.cell(row=Nproce,column=4).value)
+            inputElement6.send_keys(db_sheet.cell(row=Nproce,column=8).value)
             
             
             inputElementX=browser.find_element_by_id("sliderBehaviorConsultaNom_railElement")
@@ -101,7 +120,24 @@ def asignar_nro_proceso ():
             inputElement7=browser.find_element_by_id("btnConsultaNom")
             inputElement7.click()
             
-            time.sleep(5)
+            
+            #Este bloque try/except , se puede optimizar, ya que si no encuentra resultados va a esperar <timeout> para encontrar 
+            #el aviso de que no hay proceso y luego seguir.
+            try:
+                WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.ID,"gvResultadosNum")))                            
+            except TimeoutException:
+                
+                if browser.find_element_by_id('msjError').size['height']>0:
+                    btncerrar=browser.find_element_by_id('modalError').find_element_by_tag_name('input')
+                    btncerrar.click()
+                    print("La consulta No genero resultados, es decir, el proceso aun no esta en la web")
+                    browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
+                    continue
+                else:
+                    print('Problema web al cargar resultados de la consulta')
+                    continue
+           
+            
             #get the web element table in which the processes are contained
             tabla_procesos=browser.find_element_by_id('gvResultadosNum')
             #get all the <td> tags of the table in which the data is contained
@@ -133,63 +169,87 @@ def asignar_nro_proceso ():
                         print('posiblemente hay 2 paginas de procesos')
             
             #get the "fecha radicacion" from the excel file (database) to compare the dates from the table
-            fecha_radicacion=db_sheet.cell(row=Nproce,column=9).value
+            fecha_radicacion=db_sheet.cell(row=Nproce,column=20).value
     
             #assign the number process in the excel file
             if fecha_radicacion in lista_fechas_radicacion:
                 if lista_fechas_radicacion.count(fecha_radicacion) >1:
                     print('Hay mas de un proceso con la misma fecha, numero no asignado')
                 else:
-                    db_sheet.cell(row=Nproce,column=12).value= lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)]
-                    wb_database.save('Database-Process.xlsx')
+                    db_sheet.cell(row=Nproce,column=2).value= lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)]
+                    wb_database.save('Database-ProcessPrueba.xlsx')
                     print('Numero de Proceso Asignado -  OK')
                     create_excel_file (lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)])
+                    browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
             else:
-                print('Numero de Proceso no asignado')
+                print('Numero de Proceso no encontrado')
     print('DONE')
     browser.quit()
          
 #---------------------------Assign a process number in the excel file----------------------------#
 
 
-#time.sleep(2)
 
 def create_excel_file (process_number_given):
     
     browser=get_the_web()
     
-    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
+    wb_database=openpyxl.load_workbook('Database-ProcessPrueba.xlsx')
     db_sheet=wb_database['Hoja1']
-    number_process_column=db_sheet['L']
+    number_process_column=db_sheet['B']
     process_numbers=[]
-    
+    print('ef-1')
     for cell in number_process_column:
         process_numbers.append(cell.value)
-    
     fila_proceso=(process_numbers.index(process_number_given)+1)
+    
+    try: 
+        WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "ddlCiudad")))                               
+    except TimeoutException:
+        print("Problema web al seleccionar Ciudad")
+        browser.quit()
+        return
+    
+    dropdown_ciudad = Select(browser.find_element_by_id("ddlCiudad"))
+    dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=3).value)   
 
+           
+    print('ef-2')
+    try:
+        WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[2]/div/table/tbody/tr[3]/td[2]/select/option[2]")))                                
+    except TimeoutException:
+        print("Problema web al seleccionar la entidad - Excel no creado")
+        browser.quit()
+        return   
+        
+    time.sleep(3) #NUNCA BORRAR ESTE HP SLEEP
+    
+    dropdown1= Select(browser.find_element_by_id('ddlEntidadEspecialidad'))
+    dropdown1.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=4).value)
+    
 
-    
-    inputElement2 = browser.find_element_by_id("ddlCiudad")
-    inputElement2.send_keys(db_sheet.cell(row=fila_proceso,column=2).value)
-    time.sleep(1)
-    
-    dropdown1 = browser.find_element_by_id("ddlEntidadEspecialidad")
-    dropdown1.send_keys(db_sheet.cell(row=fila_proceso,column=3).value)
-    time.sleep(1)
-    
-    
-    
     inputRadicado = browser.find_element_by_id('divNumRadicacion').find_element_by_tag_name('input')
     inputRadicado.send_keys(process_number_given)
     
+    try:
+        WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "sliderBehaviorNumeroProceso_railElement")))                                
+    except TimeoutException:
+        print("Problema web al dar click en la barra para iniciar la consulta - Excel no creado")
+        browser.quit()
+        return
+    print('ef-3')
     inputElement7=browser.find_element_by_id("sliderBehaviorNumeroProceso_railElement")
     inputElement7.click()
-    
+
     btnconsulta=browser.find_element_by_xpath('/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[3]/table/tbody/tr[4]/td/div[1]/table/tbody/tr[3]/td/input[1]')
     btnconsulta.click()
     
-    time.sleep(5)
+    try:
+        WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.CLASS_NAME, "ActuacionesDetalle")))                                
+    except TimeoutException:
+        print("Problema web al cargar tabla de informacion de Actuaciones - Excel no creado")
+        browser.quit()
+        return
     
     despacho=browser.find_element_by_id('lblJuzgadoActual').text
     ponente=browser.find_element_by_id('lblPonente').text
@@ -201,16 +261,32 @@ def create_excel_file (process_number_given):
     demandados=browser.find_element_by_id('lblNomDemandado').text
     contenido=browser.find_element_by_id('lblContenido').text
     
+    print('ef-4')
+    
+    tabla_documentos=browser.find_element_by_class_name('DocumentosDetalle')
+    cantidad_documentos=tabla_documentos.find_elements_by_tag_name('tr')
+    
+    lista_documentos=[]
+    lista_descrip_documentos=[]
+    
     try:
-        nombre_documento=browser.find_element_by_id('rptDocumentos_lbNombreDoc_0').text
-        descripcion=browser.find_element_by_id('rptDocumentos_lblDescDoc_0').text
+        browser.find_element_by_id('rptDocumentos_lbNombreDoc_0')
+
+        for i in range(len(cantidad_documentos)-1):
+            nombre_documento='rptDocumentos_lbNombreDoc_'
+            descripcion_documento='rptDocumentos_lblDescDoc_'
+            
+            nombre_documento += str(i)
+            lista_documentos.append(browser.find_element_by_id(nombre_documento).text)
+            descripcion_documento +=str(i)
+            lista_descrip_documentos.append(browser.find_element_by_id(descripcion_documento).text)
+
     except NoSuchElementException:
         print('No hay documentos Asociados')
-
+        
 
     tabla_detalle=browser.find_element_by_class_name('ActuacionesDetalle')
     cantidad_actuaciones=tabla_detalle.find_elements_by_tag_name('tr')
-    
     
     lista_fecha_actuaciones=[]
     lista_actuaciones=[]
@@ -218,10 +294,6 @@ def create_excel_file (process_number_given):
     lista_fecha_inicia=[]
     lista_fecha_termina=[]
     lista_fecha_registro=[]
-
-
-
-    time.sleep(2)
 
     #we have to substract 1 , due to cantidad_actuaciones is including the header.
     for i in range(len(cantidad_actuaciones)-1):
@@ -246,7 +318,7 @@ def create_excel_file (process_number_given):
         fecha_registro += str(i)
         lista_fecha_registro.append(browser.find_element_by_id(fecha_registro).text)
     
-    
+    print('ef-5')
     #Open Excel Workbook
     
     path='./Procesos/Formato_Base.xlsx'
@@ -255,12 +327,7 @@ def create_excel_file (process_number_given):
     main_sheet=wb[excel_name_sheet]
     
     
-    #define the first empty row number, in which the algorythm will write "Actuaciones del Proceso" in Excel
-    empty_row=32
-    
-    while (main_sheet.cell(row = empty_row, column = 3).value != None) :
-              empty_row += 1
-              print(empty_row)
+
               
     #fill data in workbook         
               
@@ -274,15 +341,47 @@ def create_excel_file (process_number_given):
     main_sheet['Z14'].value=demandados
     main_sheet['C19'].value=contenido
     
-    try:
-        main_sheet['C26'].value=nombre_documento
-        main_sheet['Z26'].value=descripcion
-    except UnboundLocalError:
-        print('No hay documentos Asociados')
+    if lista_documentos:
+        empty_row_doc=27
+        style_source='C26'
+        
+        #merged=main_sheet.merged_cells.ranges
+        #for i in merged:
+        #    i.shift(0,3)        
+        main_sheet.insert_rows(empty_row_doc, (len(lista_documentos)-1))
+        
+        for i in range(len(lista_documentos)):
+            '''
+            main_sheet.cell(row=(empty_row_doc+i), column=3)._style=deepcopy(main_sheet[style_source]._style)
+            main_sheet.merge_cells(start_row=empty_row_doc+i, start_column=3, end_row=empty_row_doc+i, end_column=3+22)
+            main_sheet.cell(row=(empty_row_doc+i), column=24)._style=deepcopy(main_sheet[style_source]._style)
+            main_sheet.merge_cells(start_row=empty_row_doc+i, start_column=24, end_row=empty_row_doc+i, end_column=24+22)        
+            '''
+            
+
+            print('ok')
+    else:
+        pass
+    
+    
+    #define the first empty row number, in which the algorythm will write "Actuaciones del Proceso" in Excel
+    empty_row=31
+    st_row=31
+    main_sheet.merge_cells(start_row=st_row, start_column=3, end_row=empty_row, end_column=3+45)
+    main_sheet.merge_cells(start_row=st_row+1, start_column=3, end_row=st_row+1, end_column=3+3)
+    main_sheet.merge_cells(start_row=st_row+1, start_column=7, end_row=st_row+1, end_column=7+3)
+    main_sheet.merge_cells(start_row=st_row+1, start_column=11, end_row=st_row+1, end_column=11+25)
+    main_sheet.merge_cells(start_row=st_row+1, start_column=37, end_row=st_row+1, end_column=37+3)
+    main_sheet.merge_cells(start_row=st_row+1, start_column=41, end_row=st_row+1, end_column=41+3)
+    main_sheet.merge_cells(start_row=st_row+1, start_column=45, end_row=st_row+1, end_column=45+3)
+    
+    #while (main_sheet.cell(row = empty_row, column = 3).value != None) :
+     #         empty_row += 1
+      #        print(empty_row)
+    
     #Define the cell to copy the style
-    
-    style_source='C32'
-    
+    style_source='C31'
+    '''    
     for i in range (len(lista_fecha_actuaciones)):
         
         
@@ -306,11 +405,10 @@ def create_excel_file (process_number_given):
         main_sheet.merge_cells(start_row=empty_row+i, start_column=41, end_row=empty_row+i, end_column=41+3)
         main_sheet.cell(row=(empty_row+i), column=45)._style=deepcopy(main_sheet[style_source]._style)
         main_sheet.merge_cells(start_row=empty_row+i, start_column=45, end_row=empty_row+i, end_column=45+3)
-
+        '''
     browser.quit()
     new_path="./Procesos/" + process_number_given + '.xlsx'
-    wb.save(new_path)
- 
+    wb.save(new_path) 
     
     print('Excel creado exitosamente, Cesar Crack')
-
+create_excel_file('05001233300020130198100')
