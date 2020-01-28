@@ -9,7 +9,7 @@ import wx
 import time
 import openpyxl
 from webscraping import asignar_nro_proceso, get_the_web
-from get_cities import get_cities_entities_web, make_cities_entities_dictionary
+from get_lists import get_cities_entities_web, make_cities_entities_dictionary, make_others_list
 import os
 
 
@@ -29,7 +29,7 @@ class MyFrame(wx.Frame):
             event.Skip()
  
     def __init__(self):
-        ancho,alto=wx.DisplaySize()
+        
         wx.Frame.__init__(self, None, wx.ID_ANY, "Software Legal", size=(1200, 700))  
         self.Bind(wx.EVT_KEY_UP, self.OnKeyDown)
         
@@ -81,14 +81,14 @@ class MyFrame(wx.Frame):
         
 class ww_Ingresar_Proceso(wx.Frame):
    
-    ciudades_entidades=make_cities_entities_dictionary()
-    title = "Ingresar Proceso"
     
     def __init__(self,parent):
-        ancho,alto=wx.DisplaySize()
+        
         ciudades_entidades=make_cities_entities_dictionary()
-        wx.Frame.__init__(self,parent, -1,'Ingresar Proceso', size=(880,530))   
-
+        other_lists=make_others_list()
+        wx.Frame.__init__(self,parent, -1,'Ingresar Proceso', size=(880,530))
+        
+        self.ciudad='MEDELLIN '
         try:
             
             image_file = 'CINCO CONSULTORES.jpg'
@@ -122,14 +122,14 @@ class ww_Ingresar_Proceso(wx.Frame):
         self.lblciudad = wx.StaticText(self.panel, label="Ciudad:")
         self.lblciudad.SetBackgroundColour("white")
         fgs.Add(self.lblciudad,pos=(2,1),span=(1,1), flag= wx.ALL, border=5)
-        self.Ciudad=wx.ComboBox(self.panel, choices=ciudades_entidades[1],id=wx.ID_ANY)
+        self.Ciudad=wx.ComboBox(self.panel, choices=ciudades_entidades[1])
         self.Ciudad.Bind(wx.EVT_COMBOBOX, self.get_entidades)
         fgs.Add(self.Ciudad,pos=(2,2),span=(1,2), flag= wx.ALL , border=5)
     
         self.lblentidad = wx.StaticText(self.panel, label="Entidad:")
         self.lblentidad.SetBackgroundColour("white")
         fgs.Add(self.lblentidad,pos=(3,1),span=(1,1), flag= wx.ALL, border=5)
-        self.Entidades=wx.ComboBox(self.panel, choices=ciudades_entidades[0]['MEDELLIN '],size=(520,-1))      
+        self.Entidades=wx.ComboBox(self.panel, choices=[""],size=(520,-1))
         fgs.Add(self.Entidades,pos=(3,2),span=(1,5), flag=wx.ALL , border=5)
 
         self.lbljurisdiccion = wx.StaticText(self.panel, label="Jurisdicción:")
@@ -141,7 +141,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         self.lbltipo_sujeto = wx.StaticText(self.panel, label="Tipo Sujeto:")
         self.lbltipo_sujeto.SetBackgroundColour("white")
         fgs.Add(self.lbltipo_sujeto, pos=(5,1),span=(1,1), flag= wx.ALL, border=5)
-        self.Tipsuj = wx.ComboBox(self.panel, choices=['Demandado','Demandante'])
+        self.Tipsuj = wx.ComboBox(self.panel ,value=other_lists[0][0], choices=other_lists[0])
         fgs.Add(self.Tipsuj, pos=(5,2),span=(1,1), flag= wx.ALL, border=5)
         
         self.lbldemandante=wx.StaticText(self.panel, label='Demandante')
@@ -150,7 +150,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         self.lbltipo_persona_demandante=wx.StaticText(self.panel, label='Tipo Persona')
         self.lbltipo_persona_demandante.SetBackgroundColour("white")
         fgs.Add(self.lbltipo_persona_demandante , pos=(8,1),span=(1,1), flag= wx.ALL, border=5)
-        self.tipo_persona_demandante = wx.ComboBox(self.panel, choices=['Natural','Juridica'])
+        self.tipo_persona_demandante = wx.ComboBox(self.panel,value=other_lists[1][0], choices=other_lists[1])
         fgs.Add(self.tipo_persona_demandante , pos=(8,2),span=(1,1), flag= wx.SHAPED|wx.ALL, border=5)
         self.lblrazon_social_demandante=wx.StaticText(self.panel, label='Razon Social')
         self.lblrazon_social_demandante.SetBackgroundColour("white")
@@ -170,8 +170,8 @@ class ww_Ingresar_Proceso(wx.Frame):
         self.lbltipo_persona_demandado=wx.StaticText(self.panel, label='Tipo Persona')
         self.lbltipo_persona_demandado.SetBackgroundColour("white")
         fgs.Add(self.lbltipo_persona_demandado , pos=(8,4),span=(1,1), flag= wx.ALL, border=5)
-        self.tipo_persona_demandado = wx.ComboBox(self.panel, choices=['Natural','Juridica'])
-        fgs.Add(self.tipo_persona_demandado , pos=(8,5),span=(1,1), flag= wx.SHAPED|wx.ALL, border=5)
+        self.tipo_persona_demandado = wx.ComboBox(self.panel, value=other_lists[1][0],choices=other_lists[1])
+        fgs.Add(self.tipo_persona_demandado , pos=(8,5),span=(1,1), flag= wx.ALL, border=5)
         self.lblrazon_social_demandado=wx.StaticText(self.panel, label='Razon Social')
         self.lblrazon_social_demandado.SetBackgroundColour("white")
         fgs.Add(self.lblrazon_social_demandado , pos=(9,4),span=(1,1), flag= wx.ALL, border=5)
@@ -190,8 +190,8 @@ class ww_Ingresar_Proceso(wx.Frame):
         self.lbltipo_persona_tercero=wx.StaticText(self.panel, label='Tipo Persona')
         self.lbltipo_persona_tercero.SetBackgroundColour("white")
         fgs.Add(self.lbltipo_persona_tercero , pos=(8,7),span=(1,1), flag= wx.ALL, border=5)
-        self.tipo_persona_tercero = wx.ComboBox(self.panel, choices=['Natural','Juridica'])
-        fgs.Add(self.tipo_persona_tercero , pos=(8,8),span=(1,1), flag= wx.SHAPED|wx.ALL, border=5)
+        self.tipo_persona_tercero = wx.ComboBox(self.panel,value=other_lists[1][0], choices=other_lists[1])
+        fgs.Add(self.tipo_persona_tercero , pos=(8,8),span=(1,1), flag= wx.ALL, border=5)
         self.lblrazon_social_tercero=wx.StaticText(self.panel, label='Razon Social')
         self.lblrazon_social_tercero.SetBackgroundColour("white")
         fgs.Add(self.lblrazon_social_tercero , pos=(9,7),span=(1,1), flag= wx.ALL, border=5)
@@ -206,7 +206,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         self.lbltipo_proceso=wx.StaticText(self.panel, label='Tipo Proceso')
         self.lbltipo_proceso.SetBackgroundColour("white")
         fgs.Add(self.lbltipo_proceso , pos=(12,1),span=(1,1), flag= wx.ALL, border=5)
-        self.tipo_proceso = wx.ComboBox(self.panel, choices=['pendiente'])
+        self.tipo_proceso = wx.ComboBox(self.panel,value=other_lists[2][0], choices=other_lists[2])
         fgs.Add(self.tipo_proceso , pos=(12,2),span=(1,1), flag= wx.ALL, border=5)
         
         self.lblcuantia_ini = wx.StaticText(self.panel, label="Cuantia:")
@@ -263,13 +263,16 @@ class ww_Ingresar_Proceso(wx.Frame):
     def OnCloseWindow(self, event):
         self.Destroy()
 
-    def get_entidades(self):
-        global Ciudad
+    def get_entidades(self,event):
+        
+        ciudades_entidades=make_cities_entities_dictionary()
         Ciudad = self.Ciudad.GetValue()
-        return Ciudad
+        choices=ciudades_entidades[0][Ciudad]
+        self.Entidades.Clear()
+        self.Entidades.AppendItems(choices)
         
     def Crearproceso(self, event):
-        
+        other_lists=make_others_list()
         Nproce = 1
         
         while (sheet.cell(row = Nproce, column = 1).value != None) :
@@ -293,11 +296,11 @@ class ww_Ingresar_Proceso(wx.Frame):
         
         Tipo_sujeto = self.Tipsuj.GetValue()
         sheet.cell(row = Nproce, column = 6).value = Tipo_sujeto 
-        self.Tipsuj.Value=""
+        self.Tipsuj.Value=other_lists[0][0]
 
         Tipo_persona_demandante= self.tipo_persona_demandante.GetValue()
         sheet.cell(row = Nproce, column = 7).value = Tipo_persona_demandante
-        self.tipo_persona_demandante.Value=""
+        self.tipo_persona_demandante.Value=other_lists[1][0]
         
         Razon_social_demandante=self.razon_social_demandante.GetValue()
         sheet.cell(row = Nproce, column = 8).value = Razon_social_demandante
@@ -309,7 +312,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         
         Tipo_persona_demandado= self.tipo_persona_demandado.GetValue()
         sheet.cell(row = Nproce, column = 10).value = Tipo_persona_demandado
-        self.tipo_persona_demandado.Value=""
+        self.tipo_persona_demandado.Value=other_lists[1][0]
         
         Razon_social_demandado=self.razon_social_demandado.GetValue()
         sheet.cell(row = Nproce, column = 11).value = Razon_social_demandado
@@ -321,7 +324,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         
         Tipo_persona_tercero= self.tipo_persona_tercero.GetValue()
         sheet.cell(row = Nproce, column = 13).value = Tipo_persona_tercero
-        self.tipo_persona_tercero.Value=""
+        self.tipo_persona_tercero.Value=other_lists[1][0]
         
         Razon_social_tercero=self.razon_social_tercero.GetValue()
         sheet.cell(row = Nproce, column = 14).value = Razon_social_tercero
@@ -333,7 +336,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         
         Tipo_proceso=self.tipo_proceso.GetValue()
         sheet.cell(row = Nproce, column = 16).value = Tipo_proceso
-        self.tipo_proceso.Value=""
+        self.tipo_proceso.Value=other_lists[2][0]
 
         Radicado_ini=self.radicado_ini.GetValue()
         sheet.cell(row = Nproce, column = 17).value = Radicado_ini

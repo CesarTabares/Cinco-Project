@@ -12,8 +12,8 @@ import openpyxl
 # Este proceso debe hacerse dentro de los chequeos periodicos para garantizar que no se hayan añadido nuevas ciudades o destinos
 def get_cities_entities_web():
     
-    wb_cities_entities=openpyxl.load_workbook('Cities-Entities.xlsx')
-    cities_entities_sheet=wb_cities_entities['Cities-Entities']
+    wb_lists=openpyxl.load_workbook('Lists.xlsx')
+    cities_entities_sheet=wb_lists['Cities-Entities']
     row_cell=1
     
     browser=get_the_web()
@@ -39,15 +39,15 @@ def get_cities_entities_web():
                 lista_prueba.append(obj_entidad[j].text)
                 cities_entities_sheet.cell(row=row_cell,column=2).value=obj_entidad[j].text
             
-    wb_cities_entities.save('Cities-Entities.xlsx')
+    wb_lists.save('Lists.xlsx')
     
     
     print('done')
     
 def make_cities_entities_dictionary():
 
-    wb_cities_entities=openpyxl.load_workbook('Cities-Entities.xlsx')
-    cities_entities_sheet=wb_cities_entities['Cities-Entities']
+    wb_lists=openpyxl.load_workbook('Lists.xlsx')
+    cities_entities_sheet=wb_lists['Cities-Entities']
     cantidad_celdas=(len(cities_entities_sheet['A']))
     
     diccionario={}
@@ -81,3 +81,47 @@ def make_cities_entities_dictionary():
     
     return diccionario,ciudades_no_repetidas
 
+def make_others_list():
+    wb_lists=openpyxl.load_workbook('Lists.xlsx')
+    other_lists_sheet=wb_lists['Other-Lists']
+    
+    tipos_sujeto=[]
+    tipos_persona=[]
+    tipos_proceso=[]
+
+    for cell in other_lists_sheet['A']:
+        if cell.value != None:
+            tipos_sujeto.append(cell.value)
+
+    for cell in other_lists_sheet['B']:
+        if cell.value != None:
+            tipos_persona.append(cell.value)
+        
+    for cell in other_lists_sheet['C']:
+        if cell.value != None:
+            tipos_proceso.append(cell.value)
+
+    return tipos_sujeto,tipos_persona,tipos_proceso
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    

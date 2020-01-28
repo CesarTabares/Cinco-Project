@@ -13,6 +13,7 @@ from openpyxl.styles import Alignment
 
 timeout=10
 timeout2=40
+
 def get_the_web():
     
     global timeout
@@ -20,7 +21,6 @@ def get_the_web():
     # Specifying incognito mode as you launch your browser[OPTIONAL]
     option = webdriver.ChromeOptions()
     option.add_argument("--incognito")
-    
     # Create new Instance of Chrome in incognito mode
     browser = webdriver.Chrome('.\drivers\chromedriver', options=option)
 
