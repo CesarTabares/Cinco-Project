@@ -14,10 +14,33 @@ from openpyxl.styles import Alignment
 timeout=10
 timeout2=40
 
+col_radicado_ini=2
+col_radicado_completo=3
+col_fecha_radicacion=4
+col_tipo_general_proceso=5
+col_tipo_especifico_proceso=6
+col_cuantia=7
+col_instancia=8
+col_responsable=9
+col_apoderado=10
+col_ciudad=11
+col_entidad=12
+col_jurisdiccion=13
+col_tipo_sujeto_cliente=14
+col_tipo_persona_demandante=15
+col_razon_social_demandante=16
+col_nit_demandate=17
+col_tipo_persona_demandado=18
+col_razon_social_demandado=19
+col_nit_demandado=20
+col_tipo_persona_tercero=21
+col_razon_social_tercero=22
+col_nit_tercero=23
+
+
+
 def get_the_web():
-    
-    global timeout
-    
+
     # Specifying incognito mode as you launch your browser[OPTIONAL]
     option = webdriver.ChromeOptions()
     option.add_argument("--incognito")
@@ -47,6 +70,30 @@ def get_the_web():
 
 def asignar_nro_proceso ():
     global timeout
+
+    global col_radicado_ini
+    global col_radicado_completo
+    global col_fecha_radicacion
+    global col_tipo_general_proceso
+    global col_tipo_especifico_proceso
+    global col_cuantia
+    global col_instancia
+    global col_responsable
+    global col_apoderado
+    global col_ciudad
+    global col_entidad
+    global col_jurisdiccion
+    global col_tipo_sujeto_cliente
+    global col_tipo_persona_demandante
+    global col_razon_social_demandante
+    global col_nit_demandate
+    global col_tipo_persona_demandado
+    global col_razon_social_demandado
+    global col_nit_demandado
+    global col_tipo_persona_tercero
+    global col_razon_social_tercero
+    global col_nit_tercero
+    
     browser=get_the_web()
     
     #Open Excel workbook

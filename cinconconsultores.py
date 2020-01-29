@@ -84,11 +84,11 @@ class ww_Ingresar_Proceso(wx.Frame):
     
     def __init__(self,parent):
         
-        ciudades_entidades=make_cities_entities_dictionary()
-        other_lists=make_others_list()
         wx.Frame.__init__(self,parent, -1,'Ingresar Proceso', size=(880,530))
-        
+        ciudades_entidades=make_cities_entities_dictionary()
+        self.other_lists=make_others_list()
         self.ciudad='MEDELLIN '
+        
         try:
             
             image_file = 'CINCO CONSULTORES.jpg'
@@ -110,169 +110,246 @@ class ww_Ingresar_Proceso(wx.Frame):
         ico = wx.Icon('Icono.ico', wx.BITMAP_TYPE_ICO)
         title_font= wx.Font(25, wx.FONTFAMILY_DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         
-        fgs= wx.GridBagSizer(0,0)
+        self.fgs= wx.GridBagSizer(0,0)
         
         self.SetIcon(ico)
         
         self.lbltitle =wx.StaticText(self.panel, label='Nuevo Proceso')
         self.lbltitle.SetFont(title_font)
         self.lbltitle.SetBackgroundColour('white')
-        fgs.Add(self.lbltitle,pos=(0,4),span=(1,3), flag=wx.ALL | wx.ALIGN_CENTER, border=5)
+        self.fgs.Add(self.lbltitle,pos=(0,4),span=(1,3), flag=wx.ALL | wx.ALIGN_CENTER, border=5)
         
+        ################################ CIUDAD ############################################
         self.lblciudad = wx.StaticText(self.panel, label="Ciudad:")
         self.lblciudad.SetBackgroundColour("white")
-        fgs.Add(self.lblciudad,pos=(2,1),span=(1,1), flag= wx.ALL, border=5)
-        self.Ciudad=wx.ComboBox(self.panel, choices=ciudades_entidades[1])
+        self.fgs.Add(self.lblciudad,pos=(2,1),span=(1,1), flag= wx.ALL, border=5)
+        self.Ciudad=wx.ComboBox(self.panel, value='Ciudad', choices=ciudades_entidades[1])
         self.Ciudad.Bind(wx.EVT_COMBOBOX, self.get_entidades)
-        fgs.Add(self.Ciudad,pos=(2,2),span=(1,2), flag= wx.ALL , border=5)
+        self.fgs.Add(self.Ciudad,pos=(2,2),span=(1,2), flag= wx.ALL , border=5)
+        ################################ CIUDAD ############################################
     
+        ################################ ENTIDAD ############################################
         self.lblentidad = wx.StaticText(self.panel, label="Entidad:")
         self.lblentidad.SetBackgroundColour("white")
-        fgs.Add(self.lblentidad,pos=(3,1),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblentidad,pos=(3,1),span=(1,1), flag= wx.ALL, border=5)
         self.Entidades=wx.ComboBox(self.panel, choices=[""],size=(520,-1))
-        fgs.Add(self.Entidades,pos=(3,2),span=(1,5), flag=wx.ALL , border=5)
+        self.fgs.Add(self.Entidades,pos=(3,2),span=(1,5), flag=wx.ALL , border=5)
+        ################################ ENTIDAD ############################################
 
+        ################################ JURISDICCION ############################################
         self.lbljurisdiccion = wx.StaticText(self.panel, label="Jurisdicción:")
         self.lbljurisdiccion.SetBackgroundColour("white")
-        fgs.Add(self.lbljurisdiccion, pos=(4,1),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lbljurisdiccion, pos=(4,1),span=(1,1), flag= wx.ALL, border=5)
         self.Jurisdi = wx.TextCtrl(self.panel)
-        fgs.Add(self.Jurisdi, pos=(4,2),span=(1,1), flag= wx.ALL, border=5)
-                
+        self.fgs.Add(self.Jurisdi, pos=(4,2),span=(1,1), flag= wx.ALL, border=5)
+        ################################ JURISDICCION ############################################
+        
+        ################################ TIPO_SUJETO ############################################
         self.lbltipo_sujeto = wx.StaticText(self.panel, label="Tipo Sujeto:")
         self.lbltipo_sujeto.SetBackgroundColour("white")
-        fgs.Add(self.lbltipo_sujeto, pos=(5,1),span=(1,1), flag= wx.ALL, border=5)
-        self.Tipsuj = wx.ComboBox(self.panel ,value=other_lists[0][0], choices=other_lists[0])
-        fgs.Add(self.Tipsuj, pos=(5,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lbltipo_sujeto, pos=(5,1),span=(1,1), flag= wx.ALL, border=5)
+        self.Tipsuj = wx.ComboBox(self.panel ,value=self.other_lists[0][0], choices=self.other_lists[0])
+        self.Tipsuj.Bind(wx.EVT_COMBOBOX, self.get_tercero)
+        self.fgs.Add(self.Tipsuj, pos=(5,2),span=(1,1), flag= wx.ALL, border=5)
+        ################################ TIPO SUJETO ############################################
         
+        ################################ SECCION DEMANDANTE ############################################
         self.lbldemandante=wx.StaticText(self.panel, label='Demandante')
         self.lbldemandante.SetBackgroundColour("white")
-        fgs.Add(self.lbldemandante , pos=(7,1),span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER, border=5)
+        self.fgs.Add(self.lbldemandante , pos=(7,1),span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER, border=5)
         self.lbltipo_persona_demandante=wx.StaticText(self.panel, label='Tipo Persona')
         self.lbltipo_persona_demandante.SetBackgroundColour("white")
-        fgs.Add(self.lbltipo_persona_demandante , pos=(8,1),span=(1,1), flag= wx.ALL, border=5)
-        self.tipo_persona_demandante = wx.ComboBox(self.panel,value=other_lists[1][0], choices=other_lists[1])
-        fgs.Add(self.tipo_persona_demandante , pos=(8,2),span=(1,1), flag= wx.SHAPED|wx.ALL, border=5)
+        self.fgs.Add(self.lbltipo_persona_demandante , pos=(8,1),span=(1,1), flag= wx.ALL, border=5)
+        self.tipo_persona_demandante = wx.ComboBox(self.panel,value=self.other_lists[1][0], choices=self.other_lists[1])
+        self.tipo_persona_demandante.Bind(wx.EVT_COMBOBOX, self.get_labels_demandante)
+        self.fgs.Add(self.tipo_persona_demandante , pos=(8,2),span=(1,1), flag= wx.SHAPED|wx.ALL, border=5)
         self.lblrazon_social_demandante=wx.StaticText(self.panel, label='Razon Social')
         self.lblrazon_social_demandante.SetBackgroundColour("white")
-        fgs.Add(self.lblrazon_social_demandante , pos=(9,1),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblrazon_social_demandante , pos=(9,1),span=(1,1), flag= wx.ALL, border=5)
         self.razon_social_demandante = wx.TextCtrl(self.panel)
-        fgs.Add(self.razon_social_demandante , pos=(9,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.razon_social_demandante , pos=(9,2),span=(1,1), flag= wx.ALL, border=5)
         self.lblid_demandante=wx.StaticText(self.panel, label='NIT')
         self.lblid_demandante.SetBackgroundColour("white")
-        fgs.Add(self.lblid_demandante , pos=(10,1),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblid_demandante , pos=(10,1),span=(1,1), flag= wx.ALL, border=5)
         self.id_demandante = wx.TextCtrl(self.panel)
-        fgs.Add(self.id_demandante , pos=(10,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.id_demandante , pos=(10,2),span=(1,1), flag= wx.ALL, border=5)
+        ################################ SECCION DEMANDANTE ############################################
         
-        
+        ################################ SECCION DEMANDADO ############################################
         self.lbldemandado=wx.StaticText(self.panel, label='Demandado')
         self.lbldemandado.SetBackgroundColour("white")
-        fgs.Add(self.lbldemandado , pos=(7,4),span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER, border=5)
+        self.fgs.Add(self.lbldemandado , pos=(7,4),span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER, border=5)
         self.lbltipo_persona_demandado=wx.StaticText(self.panel, label='Tipo Persona')
         self.lbltipo_persona_demandado.SetBackgroundColour("white")
-        fgs.Add(self.lbltipo_persona_demandado , pos=(8,4),span=(1,1), flag= wx.ALL, border=5)
-        self.tipo_persona_demandado = wx.ComboBox(self.panel, value=other_lists[1][0],choices=other_lists[1])
-        fgs.Add(self.tipo_persona_demandado , pos=(8,5),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lbltipo_persona_demandado , pos=(8,4),span=(1,1), flag= wx.ALL, border=5)
+        self.tipo_persona_demandado = wx.ComboBox(self.panel, value=self.other_lists[1][0],choices=self.other_lists[1])
+        self.tipo_persona_demandado.Bind(wx.EVT_COMBOBOX, self.get_labels_demandado)
+        self.fgs.Add(self.tipo_persona_demandado , pos=(8,5),span=(1,1), flag= wx.ALL, border=5)
         self.lblrazon_social_demandado=wx.StaticText(self.panel, label='Razon Social')
         self.lblrazon_social_demandado.SetBackgroundColour("white")
-        fgs.Add(self.lblrazon_social_demandado , pos=(9,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblrazon_social_demandado , pos=(9,4),span=(1,1), flag= wx.ALL, border=5)
         self.razon_social_demandado = wx.TextCtrl(self.panel)
-        fgs.Add(self.razon_social_demandado , pos=(9,5),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.razon_social_demandado , pos=(9,5),span=(1,1), flag= wx.ALL, border=5)
         self.lblid_demandado=wx.StaticText(self.panel, label='NIT')
         self.lblid_demandado.SetBackgroundColour("white")
-        fgs.Add(self.lblid_demandado , pos=(10,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblid_demandado , pos=(10,4),span=(1,1), flag= wx.ALL, border=5)
         self.id_demandado = wx.TextCtrl(self.panel)
-        fgs.Add(self.id_demandado , pos=(10,5),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.id_demandado , pos=(10,5),span=(1,1), flag= wx.ALL, border=5)
+        ################################ SECCION DEMANDADO ############################################
         
-        
+        ################################ SECCION TERCERO ############################################
         self.lbltercero=wx.StaticText(self.panel, label='Tercero')
         self.lbltercero.SetBackgroundColour("white")
-        fgs.Add(self.lbltercero , pos=(7,7),span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER, border=5)
+        self.fgs.Add(self.lbltercero , pos=(7,7),span=(1,2), flag=wx.ALL | wx.ALIGN_CENTER, border=5)
         self.lbltipo_persona_tercero=wx.StaticText(self.panel, label='Tipo Persona')
         self.lbltipo_persona_tercero.SetBackgroundColour("white")
-        fgs.Add(self.lbltipo_persona_tercero , pos=(8,7),span=(1,1), flag= wx.ALL, border=5)
-        self.tipo_persona_tercero = wx.ComboBox(self.panel,value=other_lists[1][0], choices=other_lists[1])
-        fgs.Add(self.tipo_persona_tercero , pos=(8,8),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lbltipo_persona_tercero , pos=(8,7),span=(1,1), flag= wx.ALL, border=5)
+        self.tipo_persona_tercero = wx.ComboBox(self.panel,value=self.other_lists[1][0], choices=self.other_lists[1])
+        self.tipo_persona_tercero.Bind(wx.EVT_COMBOBOX, self.get_labels_tercero)
+        self.fgs.Add(self.tipo_persona_tercero , pos=(8,8),span=(1,1), flag= wx.ALL, border=5)
         self.lblrazon_social_tercero=wx.StaticText(self.panel, label='Razon Social')
         self.lblrazon_social_tercero.SetBackgroundColour("white")
-        fgs.Add(self.lblrazon_social_tercero , pos=(9,7),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblrazon_social_tercero , pos=(9,7),span=(1,1), flag= wx.ALL, border=5)
         self.razon_social_tercero = wx.TextCtrl(self.panel)
-        fgs.Add(self.razon_social_tercero , pos=(9,8),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.razon_social_tercero , pos=(9,8),span=(1,1), flag= wx.ALL, border=5)
         self.lblid_tercero=wx.StaticText(self.panel, label='NIT')
         self.lblid_tercero.SetBackgroundColour("white")
-        fgs.Add(self.lblid_tercero , pos=(10,7),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblid_tercero , pos=(10,7),span=(1,1), flag= wx.ALL, border=5)
         self.id_tercero = wx.TextCtrl(self.panel)
-        fgs.Add(self.id_tercero , pos=(10,8),span=(1,4), flag= wx.ALL, border=5)
+        self.fgs.Add(self.id_tercero , pos=(10,8),span=(1,4), flag= wx.ALL, border=5)
+        ################################ SECCION TERCERO ############################################ 
         
+        ################################ TIPO PROCESO ############################################
         self.lbltipo_proceso=wx.StaticText(self.panel, label='Tipo Proceso')
         self.lbltipo_proceso.SetBackgroundColour("white")
-        fgs.Add(self.lbltipo_proceso , pos=(12,1),span=(1,1), flag= wx.ALL, border=5)
-        self.tipo_proceso = wx.ComboBox(self.panel,value=other_lists[2][0], choices=other_lists[2])
-        fgs.Add(self.tipo_proceso , pos=(12,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lbltipo_proceso , pos=(12,1),span=(1,1), flag= wx.ALL, border=5)
+        self.tipo_proceso = wx.ComboBox(self.panel,value=self.other_lists[2][0], choices=self.other_lists[2])
+        self.fgs.Add(self.tipo_proceso , pos=(12,2),span=(1,1), flag= wx.ALL, border=5)
+        ################################ TIPO PROCESO ############################################
         
+        ################################ CUANTIA ############################################
         self.lblcuantia_ini = wx.StaticText(self.panel, label="Cuantia:")
         self.lblcuantia_ini.SetBackgroundColour("white")
-        fgs.Add(self.lblcuantia_ini, pos=(12,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblcuantia_ini, pos=(12,4),span=(1,1), flag= wx.ALL, border=5)
         self.cuantia_ini = wx.TextCtrl(self.panel)
-        fgs.Add(self.cuantia_ini, pos=(12,5),span=(1,1), flag= wx.ALL, border=5)        
+        self.fgs.Add(self.cuantia_ini, pos=(12,5),span=(1,1), flag= wx.ALL, border=5)        
+        ################################ CUANTIA ############################################
         
-        self.lblradicado_ini = wx.StaticText(self.panel, label="Radicado:")
+        ################################ RADICADO ############################################
+        self.lblradicado_ini = wx.StaticText(self.panel, label="Radicado Inicial:")
         self.lblradicado_ini.SetBackgroundColour("white")
-        fgs.Add(self.lblradicado_ini, pos=(13,1),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblradicado_ini, pos=(13,1),span=(1,1), flag= wx.ALL, border=5)
         self.radicado_ini = wx.TextCtrl(self.panel)
-        fgs.Add(self.radicado_ini, pos=(13,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.radicado_ini, pos=(13,2),span=(1,1), flag= wx.ALL, border=5)
+        ################################ RADICADO ############################################
         
+        ################################ FECHA_RADICADO ############################################
         self.lblfecha_rad = wx.StaticText(self.panel, label="Fecha de Radicacion:")
         self.lblfecha_rad.SetBackgroundColour("white")
-        fgs.Add(self.lblfecha_rad, pos=(13,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblfecha_rad, pos=(13,4),span=(1,1), flag= wx.ALL, border=5)
         self.Fechara = wx.TextCtrl(self.panel)
-        fgs.Add(self.Fechara, pos=(13,5),span=(1,1), flag= wx.ALL, border=5)        
-
+        self.fgs.Add(self.Fechara, pos=(13,5),span=(1,1), flag= wx.ALL, border=5)        
+        ################################ FECHA_RADICADO ############################################
+        
+        ################################ RESPONSABLE ############################################
         self.lblresponsable = wx.StaticText(self.panel, label="Responsable:")
         self.lblresponsable.SetBackgroundColour("white")
-        fgs.Add(self.lblresponsable, pos=(14,1),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblresponsable, pos=(14,1),span=(1,1), flag= wx.ALL, border=5)
         self.Responsable = wx.TextCtrl(self.panel)
-        fgs.Add(self.Responsable, pos=(14,2),span=(1,1), flag= wx.ALL, border=5)
-
+        self.fgs.Add(self.Responsable, pos=(14,2),span=(1,1), flag= wx.ALL, border=5)
+        ################################ RESPONSABLE ############################################
+        
+        ################################ APODERADO ############################################
         self.lblapoderado_ini = wx.StaticText(self.panel, label="apoderado:")
         self.lblapoderado_ini.SetBackgroundColour("white")
-        fgs.Add(self.lblapoderado_ini, pos=(14,4),span=(2,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblapoderado_ini, pos=(14,4),span=(2,1), flag= wx.ALL, border=5)
         self.apoderado_ini = wx.TextCtrl(self.panel)
-        fgs.Add(self.apoderado_ini, pos=(14,5),span=(5,1), flag= wx.ALL, border=5)      
-
+        self.fgs.Add(self.apoderado_ini, pos=(14,5),span=(5,1), flag= wx.ALL, border=5)      
+        ################################ APODERADO ############################################
         
-
+        ################################ BOTONES ############################################
         btn_crear = wx.Button(self.panel, id=wx.ID_ANY, label="Crear Proceso", size=(200,40))
-        fgs.Add(btn_crear, pos=(12,7),span=(2,2), flag= wx.ALL, border=0)
+        self.fgs.Add(btn_crear, pos=(12,7),span=(2,2), flag= wx.ALL, border=0)
         btn_crear.Bind(wx.EVT_BUTTON, self.Crearproceso)
         
         btn_cancelar = wx.Button(self.panel, id=wx.ID_ANY, label="Cancelar",size=(200,40))
-        fgs.Add(btn_cancelar, pos=(14,7),span=(2,2), flag= wx.ALL, border=0)
+        self.fgs.Add(btn_cancelar, pos=(14,7),span=(2,2), flag= wx.ALL, border=0)
         btn_cancelar.Bind(wx.EVT_BUTTON, self.OnCloseWindow)
+        ################################ BOTONES ############################################
         
         self.SetBackgroundColour(wx.Colour(100,100,100))
         self.Centre(True)
         self.Show()
 
         mainSizer= wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(fgs,0, flag=wx.ALIGN_CENTER)
+        mainSizer.Add(self.fgs,0, flag=wx.ALIGN_CENTER)
         self.panel.SetSizerAndFit(mainSizer)
 
-        
-
-        
-    def OnCloseWindow(self, event):
-        self.Destroy()
 
     def get_entidades(self,event):
-        
+
         ciudades_entidades=make_cities_entities_dictionary()
         Ciudad = self.Ciudad.GetValue()
         choices=ciudades_entidades[0][Ciudad]
         self.Entidades.Clear()
         self.Entidades.AppendItems(choices)
+
+    def get_tercero(self,event):
         
+        TipSuj=self.Tipsuj.GetValue()
+        
+        if TipSuj != self.other_lists[0][3]:
+            self.lbltercero.Hide()
+            self.lbltipo_persona_tercero.Hide()
+            self.tipo_persona_tercero.Hide()
+            self.lblrazon_social_tercero.Hide()
+            self.razon_social_tercero.Hide()
+            self.lblid_tercero.Hide()
+            self.id_tercero.Hide()
+        else:
+            self.lbltercero.Show()
+            self.lbltipo_persona_tercero.Show()
+            self.tipo_persona_tercero.Show()
+            self.lblrazon_social_tercero.Show()
+            self.razon_social_tercero.Show()
+            self.lblid_tercero.Show()
+            self.id_tercero.Show()
+        
+    def get_labels_demandante(self,event):
+        tipo_persona=self.tipo_persona_demandante.GetValue()
+        
+        if tipo_persona==self.other_lists[1][1]:
+            self.lblrazon_social_demandante.SetLabel('Nombre') 
+            self.lblid_demandante.SetLabel('Cedula')
+        else:
+            self.lblrazon_social_demandante.SetLabel('Razon Social')
+            self.lblid_demandante.SetLabel('NIT')
+            
+    def get_labels_demandado(self,event):        
+        tipo_persona=self.tipo_persona_demandado.GetValue()
+        
+        if tipo_persona==self.other_lists[1][1]:
+            self.lblrazon_social_demandado.SetLabel('Nombre') 
+            self.lblid_demandado.SetLabel('Cedula')
+        else:
+            self.lblrazon_social_demandado.SetLabel('Razon Social')
+            self.lblid_demandado.SetLabel('NIT')
+            
+    def get_labels_tercero(self,event):
+        tipo_persona=self.tipo_persona_tercero.GetValue()
+        
+        if tipo_persona==self.other_lists[1][1]:
+            self.lblrazon_social_tercero.SetLabel('Nombre') 
+            self.lblid_tercero.SetLabel('Cedula')
+        else:
+            self.lblrazon_social_tercero.SetLabel('Razon Social')
+            self.lblid_tercero.SetLabel('NIT')
+            
+    def OnCloseWindow(self, event):
+        self.Destroy()
+    
     def Crearproceso(self, event):
-        other_lists=make_others_list()
+        
         Nproce = 1
         
         while (sheet.cell(row = Nproce, column = 1).value != None) :
@@ -296,11 +373,11 @@ class ww_Ingresar_Proceso(wx.Frame):
         
         Tipo_sujeto = self.Tipsuj.GetValue()
         sheet.cell(row = Nproce, column = 6).value = Tipo_sujeto 
-        self.Tipsuj.Value=other_lists[0][0]
+        self.Tipsuj.Value=self.other_lists[0][0]
 
         Tipo_persona_demandante= self.tipo_persona_demandante.GetValue()
         sheet.cell(row = Nproce, column = 7).value = Tipo_persona_demandante
-        self.tipo_persona_demandante.Value=other_lists[1][0]
+        self.tipo_persona_demandante.Value=self.other_lists[1][0]
         
         Razon_social_demandante=self.razon_social_demandante.GetValue()
         sheet.cell(row = Nproce, column = 8).value = Razon_social_demandante
@@ -312,7 +389,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         
         Tipo_persona_demandado= self.tipo_persona_demandado.GetValue()
         sheet.cell(row = Nproce, column = 10).value = Tipo_persona_demandado
-        self.tipo_persona_demandado.Value=other_lists[1][0]
+        self.tipo_persona_demandado.Value=self.other_lists[1][0]
         
         Razon_social_demandado=self.razon_social_demandado.GetValue()
         sheet.cell(row = Nproce, column = 11).value = Razon_social_demandado
@@ -324,7 +401,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         
         Tipo_persona_tercero= self.tipo_persona_tercero.GetValue()
         sheet.cell(row = Nproce, column = 13).value = Tipo_persona_tercero
-        self.tipo_persona_tercero.Value=other_lists[1][0]
+        self.tipo_persona_tercero.Value=self.other_lists[1][0]
         
         Razon_social_tercero=self.razon_social_tercero.GetValue()
         sheet.cell(row = Nproce, column = 14).value = Razon_social_tercero
@@ -336,7 +413,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         
         Tipo_proceso=self.tipo_proceso.GetValue()
         sheet.cell(row = Nproce, column = 16).value = Tipo_proceso
-        self.tipo_proceso.Value=other_lists[2][0]
+        self.tipo_proceso.Value=self.other_lists[2][0]
 
         Radicado_ini=self.radicado_ini.GetValue()
         sheet.cell(row = Nproce, column = 17).value = Radicado_ini
