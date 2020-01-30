@@ -12,6 +12,30 @@ from webscraping import asignar_nro_proceso, get_the_web
 from get_lists import get_cities_entities_web, make_cities_entities_dictionary, make_others_list
 import os
 
+col_radicado_ini=2
+col_radicado_completo=3
+col_fecha_radicacion=4
+col_tipo_general_proceso=5
+col_tipo_especifico_proceso=6
+col_cuantia=7
+col_instancia=8
+col_responsable=9
+col_apoderado=10
+col_ciudad=11
+col_entidad=12
+col_jurisdiccion=13
+col_tipo_sujeto_cliente=14
+col_tipo_persona_demandante=15
+col_razon_social_demandante=16
+col_nit_demandate=17
+col_tipo_persona_demandado=18
+col_razon_social_demandado=19
+col_nit_demandado=20
+col_tipo_persona_tercero=21
+col_razon_social_tercero=22
+col_nit_tercero=23
+
+
 
 DB = openpyxl.load_workbook('Database-Process.xlsx')
 sheet = DB['Hoja1']
@@ -350,89 +374,137 @@ class ww_Ingresar_Proceso(wx.Frame):
     
     def Crearproceso(self, event):
         
+        
+        global col_radicado_ini
+        global col_radicado_completo
+        global col_fecha_radicacion
+        global col_tipo_general_proceso
+        global col_tipo_especifico_proceso
+        global col_cuantia
+        global col_instancia
+        global col_responsable
+        global col_apoderado
+        global col_ciudad
+        global col_entidad
+        global col_jurisdiccion
+        global col_tipo_sujeto_cliente
+        global col_tipo_persona_demandante
+        global col_razon_social_demandante
+        global col_nit_demandate
+        global col_tipo_persona_demandado
+        global col_razon_social_demandado
+        global col_nit_demandado
+        global col_tipo_persona_tercero
+        global col_razon_social_tercero
+        global col_nit_tercero
+        
+        
+
+        smmlv=int(self.other_lists[4])
+        limite=40*smmlv
+        
         Nproce = 1
         
         while (sheet.cell(row = Nproce, column = 1).value != None) :
           Nproce = Nproce + 1
-          print(Nproce)
-
         sheet.cell(row = Nproce  , column = 1).value = Nproce
         
 
         Ciudad = self.Ciudad.GetValue()
-        sheet.cell(row = Nproce, column = 3).value = Ciudad
+        sheet.cell(row = Nproce, column = col_ciudad).value = Ciudad
         self.Ciudad.Value=""
 
         Entidad = self.Entidades.GetValue()
-        sheet.cell(row = Nproce, column = 4).value = Entidad
+        sheet.cell(row = Nproce, column = col_entidad).value = Entidad
         self.Entidades.Value=""        
         
         Jurisdi = self.Jurisdi.GetValue()
-        sheet.cell(row = Nproce, column = 5).value = Jurisdi
+        sheet.cell(row = Nproce, column = col_jurisdiccion).value = Jurisdi
         self.Jurisdi.Value=""
         
         Tipo_sujeto = self.Tipsuj.GetValue()
-        sheet.cell(row = Nproce, column = 6).value = Tipo_sujeto 
+        sheet.cell(row = Nproce, column = col_tipo_sujeto_cliente).value = Tipo_sujeto 
         self.Tipsuj.Value=self.other_lists[0][0]
 
         Tipo_persona_demandante= self.tipo_persona_demandante.GetValue()
-        sheet.cell(row = Nproce, column = 7).value = Tipo_persona_demandante
+        sheet.cell(row = Nproce, column = col_tipo_persona_demandante).value = Tipo_persona_demandante
         self.tipo_persona_demandante.Value=self.other_lists[1][0]
         
         Razon_social_demandante=self.razon_social_demandante.GetValue()
-        sheet.cell(row = Nproce, column = 8).value = Razon_social_demandante
+        sheet.cell(row = Nproce, column = col_razon_social_demandante).value = Razon_social_demandante
         self.razon_social_demandante.Value=""
         
         Id_demandante=self.id_demandante.GetValue()
-        sheet.cell(row = Nproce, column = 9).value = Id_demandante
+        sheet.cell(row = Nproce, column = col_nit_demandate).value = Id_demandante
         self.id_demandante.Value=""        
         
         Tipo_persona_demandado= self.tipo_persona_demandado.GetValue()
-        sheet.cell(row = Nproce, column = 10).value = Tipo_persona_demandado
+        sheet.cell(row = Nproce, column = col_tipo_persona_demandado).value = Tipo_persona_demandado
         self.tipo_persona_demandado.Value=self.other_lists[1][0]
         
         Razon_social_demandado=self.razon_social_demandado.GetValue()
-        sheet.cell(row = Nproce, column = 11).value = Razon_social_demandado
+        sheet.cell(row = Nproce, column = col_razon_social_demandado).value = Razon_social_demandado
         self.razon_social_demandado.Value=""
         
         Id_demandado=self.id_demandado.GetValue()
-        sheet.cell(row = Nproce, column = 12).value = Id_demandado
+        sheet.cell(row = Nproce, column = col_nit_demandado).value = Id_demandado
         self.id_demandado.Value=""
         
         Tipo_persona_tercero= self.tipo_persona_tercero.GetValue()
-        sheet.cell(row = Nproce, column = 13).value = Tipo_persona_tercero
+        sheet.cell(row = Nproce, column = col_tipo_persona_tercero).value = Tipo_persona_tercero
         self.tipo_persona_tercero.Value=self.other_lists[1][0]
         
         Razon_social_tercero=self.razon_social_tercero.GetValue()
-        sheet.cell(row = Nproce, column = 14).value = Razon_social_tercero
+        sheet.cell(row = Nproce, column = col_razon_social_tercero).value = Razon_social_tercero
         self.razon_social_tercero.Value=""
         
-        Id_tercero=self.id_demandado.GetValue()
-        sheet.cell(row = Nproce, column = 15).value = Id_tercero
-        self.id_demandado.Value=""
+        Id_tercero=self.id_tercero.GetValue()
+        sheet.cell(row = Nproce, column = col_nit_tercero).value = Id_tercero
+        self.id_tercero.Value=""
         
+        Cuantia = self.cuantia_ini.GetValue()
+        sheet.cell(row = Nproce, column = col_cuantia).value = Cuantia
+        self.cuantia_ini.Value=""
+
         Tipo_proceso=self.tipo_proceso.GetValue()
-        sheet.cell(row = Nproce, column = 16).value = Tipo_proceso
+        sheet.cell(row = Nproce, column = col_tipo_especifico_proceso).value = Tipo_proceso
         self.tipo_proceso.Value=self.other_lists[2][0]
+        
+        index_tipo_proceso= self.other_lists[2].index(Tipo_proceso)
+        self.tipo_proceso_general=self.other_lists[3][index_tipo_proceso]
+        sheet.cell(row = Nproce, column = col_tipo_general_proceso).value = self.tipo_proceso_general
+        
+        if self.tipo_proceso_general=="Declarativo":
+            if Tipo_proceso==self.other_lists[2][1]:
+                self.instancia="Doble Instancia"
+            else:
+                self.instancia="Unica Instancia"
+        
+        elif self.tipo_proceso_general=="De Jurisdicción Voluntaria":
+            self.instancia="Unica Instancia"
+        else:
+            if int(Cuantia) < limite:
+                self.instancia="Unica Instancia"
+            else:
+                self.instancia="Doble Instancia"
+         
+        sheet.cell(row = Nproce, column = col_instancia).value = self.instancia
 
         Radicado_ini=self.radicado_ini.GetValue()
-        sheet.cell(row = Nproce, column = 17).value = Radicado_ini
+        sheet.cell(row = Nproce, column = col_radicado_ini).value = Radicado_ini
         self.radicado_ini.Value=""
         
         Responsable = self.Responsable.GetValue()
-        sheet.cell(row = Nproce, column = 18).value = Responsable
+        sheet.cell(row = Nproce, column = col_responsable).value = Responsable
         self.Responsable.Value=""
         
-        Cuantia = self.cuantia_ini.GetValue()
-        sheet.cell(row = Nproce, column = 19).value = Cuantia
-        self.cuantia_ini.Value=""
 
         Fechara  = self.Fechara.GetValue()
-        sheet.cell(row = Nproce, column = 20).value = Fechara
+        sheet.cell(row = Nproce, column = col_fecha_radicacion).value = Fechara
         self.Fechara.Value=""
                 
         Apoderado = self.apoderado_ini.GetValue()
-        sheet.cell(row = Nproce, column = 21).value =Apoderado
+        sheet.cell(row = Nproce, column = col_apoderado).value =Apoderado
         self.apoderado_ini.Value=""
          
         success_msgbox=wx.MessageDialog(None,'Registro añadido - Este mensaje aun no garantiza que nada haya fallado en el proceso de agregar el registro - /n EnConstruccion','Status',wx.OK)

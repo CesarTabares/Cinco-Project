@@ -107,7 +107,7 @@ def asignar_nro_proceso ():
     for i in range(registered_process-1):
         Nproce +=1
         
-        if(db_sheet.cell(row=Nproce,column=2).value == None):
+        if(db_sheet.cell(row=Nproce,column=col_radicado_completo).value == None):
             
             try: 
                 WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "ddlCiudad")))                               
@@ -117,7 +117,7 @@ def asignar_nro_proceso ():
                 continue
 
             dropdown_ciudad = Select(browser.find_element_by_id("ddlCiudad"))
-            dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=Nproce,column=3).value)
+            dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_ciudad).value)
             
             try:
                 WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[2]/div/table/tbody/tr[3]/td[2]/select/option[2]")))                                
@@ -129,7 +129,7 @@ def asignar_nro_proceso ():
             time.sleep(3) #NUNCA BORRAR ESTE HP SLEEP
             
             dropdown1= Select(browser.find_element_by_id('ddlEntidadEspecialidad'))
-            dropdown1.select_by_visible_text(db_sheet.cell(row=Nproce,column=4).value)
+            dropdown1.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_entidad).value)
             
             try:
                 WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "rblConsulta")))                                
@@ -151,15 +151,15 @@ def asignar_nro_proceso ():
             
             
             inputElement4 = Select(browser.find_element_by_id("ddlTipoSujeto"))
-            inputElement4.select_by_visible_text(db_sheet.cell(row=Nproce,column=6).value)
+            inputElement4.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_tipo_sujeto_cliente).value)
             
             inputElement5 = Select(browser.find_element_by_id("ddlTipoPersona"))
-            inputElement5.select_by_visible_text(db_sheet.cell(row=Nproce,column=7).value)
+            inputElement5.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_tipo_persona_demandante).value)
                 
             inputElement6 = browser.find_element_by_id("txtNatural")
             if inputElement6.text != None:
                 inputElement6.clear()
-            inputElement6.send_keys(db_sheet.cell(row=Nproce,column=8).value)
+            inputElement6.send_keys(db_sheet.cell(row=Nproce,column=col_razon_social_demandante).value)
             
             
             inputElementX=browser.find_element_by_id("sliderBehaviorConsultaNom_railElement")
@@ -218,14 +218,14 @@ def asignar_nro_proceso ():
                         print('Posiblemente hay 2 paginas de procesos - Esto aun esta en construccion')
             
             #get the "fecha radicacion" from the excel file (database) to compare the dates from the table
-            fecha_radicacion=db_sheet.cell(row=Nproce,column=20).value
+            fecha_radicacion=db_sheet.cell(row=Nproce,column=col_fecha_radicacion).value
     
             #assign the number process in the excel file
             if fecha_radicacion in lista_fechas_radicacion:
                 if lista_fechas_radicacion.count(fecha_radicacion) >1:
                     print('Hay mas de un proceso con la misma fecha, numero no asignado')
                 else:
-                    db_sheet.cell(row=Nproce,column=2).value= lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)]
+                    db_sheet.cell(row=Nproce,column=col_radicado_completo).value= lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)]
                     wb_database.save('Database-Process.xlsx')
                     print('Numero de Proceso Asignado -  OK')
                     create_excel_file (lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)])
@@ -243,10 +243,33 @@ def create_excel_file (process_number_given):
     global timeout
     global timeout2
     
+    global col_radicado_ini
+    global col_radicado_completo
+    global col_fecha_radicacion
+    global col_tipo_general_proceso
+    global col_tipo_especifico_proceso
+    global col_cuantia
+    global col_instancia
+    global col_responsable
+    global col_apoderado
+    global col_ciudad
+    global col_entidad
+    global col_jurisdiccion
+    global col_tipo_sujeto_cliente
+    global col_tipo_persona_demandante
+    global col_razon_social_demandante
+    global col_nit_demandate
+    global col_tipo_persona_demandado
+    global col_razon_social_demandado
+    global col_nit_demandado
+    global col_tipo_persona_tercero
+    global col_razon_social_tercero
+    global col_nit_tercero
+    
     browser=get_the_web()
     wb_database=openpyxl.load_workbook('Database-Process.xlsx')
     db_sheet=wb_database['Hoja1']
-    number_process_column=db_sheet['B']
+    number_process_column=db_sheet['C']
     process_numbers=[]
     
     for cell in number_process_column:
@@ -261,7 +284,7 @@ def create_excel_file (process_number_given):
         return
     
     dropdown_ciudad = Select(browser.find_element_by_id("ddlCiudad"))
-    dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=3).value)   
+    dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=col_ciudad).value)   
 
            
     
@@ -275,7 +298,7 @@ def create_excel_file (process_number_given):
     time.sleep(3) #NUNCA BORRAR ESTE HP SLEEP
     
     dropdown1= Select(browser.find_element_by_id('ddlEntidadEspecialidad'))
-    dropdown1.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=4).value)
+    dropdown1.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=col_entidad).value)
     
 
     inputRadicado = browser.find_element_by_id('divNumRadicacion').find_element_by_tag_name('input')

@@ -88,6 +88,7 @@ def make_others_list():
     tipos_sujeto=[]
     tipos_persona=[]
     tipos_proceso=[]
+    tipos_proceso_general=[]
 
     for cell in other_lists_sheet['A']:
         if cell.value != None:
@@ -100,8 +101,14 @@ def make_others_list():
     for cell in other_lists_sheet['C']:
         if cell.value != None:
             tipos_proceso.append(cell.value)
+            
+    for cell in other_lists_sheet['D']:
+        if cell.value != None:
+            tipos_proceso_general.append(cell.value)
+    
+    smmlv= other_lists_sheet.cell(row=2,column=6).value
 
-    return tipos_sujeto,tipos_persona,tipos_proceso
+    return tipos_sujeto,tipos_persona,tipos_proceso, tipos_proceso_general, smmlv
         
         
         
