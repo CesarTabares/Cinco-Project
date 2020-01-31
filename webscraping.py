@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import Select
 from copy import copy, deepcopy
@@ -11,8 +12,9 @@ import openpyxl
 import openpyxl.worksheet.cell_range
 from openpyxl.styles import Alignment
 
+
 timeout=10
-timeout2=40
+timeout2=20
 
 col_radicado_ini=2
 col_radicado_completo=3
@@ -95,6 +97,8 @@ def asignar_nro_proceso ():
     global col_nit_tercero
     
     browser=get_the_web()
+    from get_lists import make_others_list
+    other_lists= make_others_list()
     
     #Open Excel workbook
     wb_database=openpyxl.load_workbook('Database-Process.xlsx')
@@ -151,15 +155,25 @@ def asignar_nro_proceso ():
             
             
             inputElement4 = Select(browser.find_element_by_id("ddlTipoSujeto"))
-            inputElement4.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_tipo_sujeto_cliente).value)
-            
             inputElement5 = Select(browser.find_element_by_id("ddlTipoPersona"))
-            inputElement5.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_tipo_persona_demandante).value)
-                
             inputElement6 = browser.find_element_by_id("txtNatural")
+            
             if inputElement6.text != None:
                 inputElement6.clear()
-            inputElement6.send_keys(db_sheet.cell(row=Nproce,column=col_razon_social_demandante).value)
+            
+            tipo_sujeto_cliente=db_sheet.cell(row=Nproce,column=col_tipo_sujeto_cliente).value
+            
+            if tipo_sujeto_cliente==other_lists[0][1]:
+                
+                inputElement4.select_by_visible_text(other_lists[0][1])
+                inputElement5.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_tipo_persona_demandante).value)
+                inputElement6.send_keys(db_sheet.cell(row=Nproce,column=col_razon_social_demandante).value)
+                
+            else:
+                
+                inputElement4.select_by_visible_text(other_lists[0][2])
+                inputElement5.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_tipo_persona_demandado).value)
+                inputElement6.send_keys(db_sheet.cell(row=Nproce,column=col_razon_social_demandado).value)
             
             
             inputElementX=browser.find_element_by_id("sliderBehaviorConsultaNom_railElement")
@@ -167,32 +181,61 @@ def asignar_nro_proceso ():
     
             inputElement7=browser.find_element_by_id("btnConsultaNom")
             inputElement7.click()
-            
-            
-            #Este bloque try/except , se puede optimizar, ya que si no encuentra resultados va a esperar <timeout> para encontrar 
-            #el aviso de que no hay proceso y luego seguir.
+
             try:
-                WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.ID,"gvResultadosNum")))                            
-            except TimeoutException:
+                WebDriverWait(browser, 3).until(EC.visibility_of_element_located((By.ID,'msjError')))
+                print('YAY')         
+                btncerrar=browser.find_element_by_id('modalError').find_element_by_tag_name('input')
+                btncerrar.click()
+                inputElement6.clear()
                 
-                if browser.find_element_by_id('msjError').size['height']>0:
-                    btncerrar=browser.find_element_by_id('modalError').find_element_by_tag_name('input')
-                    btncerrar.click()
-                    print("La consulta No genero resultados, es decir, el proceso aun no esta en la web")
-                    browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
-                    continue
+                if tipo_sujeto_cliente==other_lists[0][1]:
+                
+                    inputElement4.select_by_visible_text(other_lists[0][2])
+                    inputElement5.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_tipo_persona_demandado).value)
+                    inputElement6.send_keys(db_sheet.cell(row=Nproce,column=col_razon_social_demandado).value)
+                
                 else:
-                    print('Problema web al cargar resultados de la consulta')
-                    browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
-                    continue
+                
+                    inputElement4.select_by_visible_text(other_lists[0][2])
+                    inputElement5.select_by_visible_text(db_sheet.cell(row=Nproce,column=col_tipo_persona_demandante).value)
+                    inputElement6.send_keys(db_sheet.cell(row=Nproce,column=col_razon_social_demandante).value)
+                    
+                btn_nueva_consulta=browser.find_element_by_id('btnNuevaConsultaNom')
+                btn_nueva_consulta.click()
+                
+                inputElementX=browser.find_element_by_id("sliderBehaviorConsultaNom_railElement")
+                inputElementX.click()
+                
+                inputElement7.click()
+
+            except TimeoutException:
+                pass
+            
+            try:
+                WebDriverWait(browser, 3).until(EC.visibility_of_element_located((By.ID,'msjError')))
+                btncerrar=browser.find_element_by_id('modalError').find_element_by_tag_name('input')
+                btncerrar.click()
+                print("La consulta No genero resultados, es decir, el proceso aun no esta en la web")
+                browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
+                continue
+            
+            except TimeoutException:
+                pass
+
+            try:
+                WebDriverWait(browser, timeout2).until(EC.visibility_of_element_located((By.ID,"gvResultadosNum")))
+            except TimeoutException:
+                print('Problemas al cargar los resultados de la consulta, proceso no asignado')
+                browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
+                continue
            
             
             #get the web element table in which the processes are contained
             tabla_procesos=browser.find_element_by_id('gvResultadosNum')
             #get all the <td> tags of the table in which the data is contained
             campos_tabla_busqueda=tabla_procesos.find_elements_by_tag_name('td')
-            
-            
+
     #---------------------------Get all the elements on the web and send the values on the excel file (database)----------------------------#
             
     #---------------------------Assign a process number in the excel file----------------------------#       
