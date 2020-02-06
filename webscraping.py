@@ -16,6 +16,7 @@ from openpyxl.styles import Alignment
 timeout=10
 timeout2=20
 
+#-- Excel BD Procesos--#
 col_radicado_ini=2
 col_radicado_completo=3
 col_fecha_radicacion=4
@@ -38,7 +39,19 @@ col_nit_demandado=20
 col_tipo_persona_tercero=21
 col_razon_social_tercero=22
 col_nit_tercero=23
+#-- Excel BD Procesos--#
 
+#-- Excel BD Actuaciones--#
+col_numero_proceso=1
+col_fecha_actuacion=2
+col_actuacion=3
+col_anotacion=4
+col_fecha_ini_termino=5
+col_fecha_fin_termino=6
+col_fecha_registro=7
+col_estado=8
+estado_choices=['Ok','Pendiente']
+#-- Excel BD Actuaciones--#
 
 
 def get_the_web():
@@ -103,6 +116,7 @@ def asignar_nro_proceso ():
     #Open Excel workbook
     wb_database=openpyxl.load_workbook('Database-Process.xlsx')
     db_sheet=wb_database['Hoja1']
+    
 
     
     registered_process=len(db_sheet['A'])
@@ -184,7 +198,7 @@ def asignar_nro_proceso ():
 
             try:
                 WebDriverWait(browser, 3).until(EC.visibility_of_element_located((By.ID,'msjError')))
-                print('YAY')         
+                        
                 btncerrar=browser.find_element_by_id('modalError').find_element_by_tag_name('input')
                 btncerrar.click()
                 inputElement6.clear()
@@ -271,7 +285,7 @@ def asignar_nro_proceso ():
                     db_sheet.cell(row=Nproce,column=col_radicado_completo).value= lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)]
                     wb_database.save('Database-Process.xlsx')
                     print('Numero de Proceso Asignado -  OK')
-                    create_excel_file (lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)])
+                    create_excel_file (lista_numeros_procesos[lista_fechas_radicacion.index(fecha_radicacion)],flag_browser=0,flag_actuaciones=0,browser=0)
                     browser.get("https://procesos.ramajudicial.gov.co/procesoscs/ConsultaJusticias21.aspx?EntryId=Xsw4o2BqwzV1apD2i2r2orO8yTc%3d")
             else:
                 print('Numero de Proceso no encontrado')
@@ -279,10 +293,68 @@ def asignar_nro_proceso ():
     browser.quit()
          
 #---------------------------Assign a process number in the excel file----------------------------#
+    
+def search_process(process_number_given):
+    browser=get_the_web()
+    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
+    db_sheet=wb_database['Hoja1']
+    number_process_column=db_sheet['C']
+    
+    process_numbers=[]
+    
+    for cell in number_process_column:
+        process_numbers.append(cell.value)
+    
+    fila_proceso=(process_numbers.index(process_number_given)+1)
+    
+    try: 
+        WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "ddlCiudad")))                               
+    except TimeoutException:
+        print("Problema web al seleccionar Ciudad - Excel no creado")
+        browser.quit()
+        return
+    
+    dropdown_ciudad = Select(browser.find_element_by_id("ddlCiudad"))
+    dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=col_ciudad).value)
+    
+    try:
+        WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[2]/div/table/tbody/tr[3]/td[2]/select/option[2]")))                                
+    except TimeoutException:
+        print("Problema web al seleccionar la entidad - Excel no creado")
+        browser.quit()
+        return   
+        
+    time.sleep(3) #NUNCA BORRAR ESTE HP SLEEP
+    
+    dropdown1= Select(browser.find_element_by_id('ddlEntidadEspecialidad'))
+    dropdown1.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=col_entidad).value)
+    
+    inputRadicado = browser.find_element_by_id('divNumRadicacion').find_element_by_tag_name('input')
+    inputRadicado.send_keys(process_number_given)
+        
+    try:
+        WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "sliderBehaviorNumeroProceso_railElement")))                                
+    except TimeoutException:
+        print("Problema web al dar click en la barra para iniciar la consulta - Excel no creado")
+        browser.quit()
+        return
+    
+    inputElement7=browser.find_element_by_id("sliderBehaviorNumeroProceso_railElement")
+    inputElement7.click()
 
+    btnconsulta=browser.find_element_by_xpath('/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[3]/table/tbody/tr[4]/td/div[1]/table/tbody/tr[3]/td/input[1]')
+    btnconsulta.click()
+    
+    try:
+        WebDriverWait(browser, timeout2).until(EC.visibility_of_element_located((By.CLASS_NAME, "ActuacionesDetalle")))                                
+    except TimeoutException:
+        print("Problema web al cargar tabla de informacion de Actuaciones - Excel no creado")
+        browser.quit()
+        return
 
+    return browser
 
-def create_excel_file (process_number_given):
+def create_excel_file (process_number_given,flag_browser,flag_actuaciones,browser=0):
     global timeout
     global timeout2
     
@@ -309,63 +381,10 @@ def create_excel_file (process_number_given):
     global col_razon_social_tercero
     global col_nit_tercero
     
-    browser=get_the_web()
-    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
-    db_sheet=wb_database['Hoja1']
-    number_process_column=db_sheet['C']
-    process_numbers=[]
-    
-    for cell in number_process_column:
-        process_numbers.append(cell.value)
-    fila_proceso=(process_numbers.index(process_number_given)+1)
-    
-    try: 
-        WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "ddlCiudad")))                               
-    except TimeoutException:
-        print("Problema web al seleccionar Ciudad")
-        browser.quit()
-        return
-    
-    dropdown_ciudad = Select(browser.find_element_by_id("ddlCiudad"))
-    dropdown_ciudad.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=col_ciudad).value)   
-
-           
-    
-    try:
-        WebDriverWait(browser, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[2]/div/table/tbody/tr[3]/td[2]/select/option[2]")))                                
-    except TimeoutException:
-        print("Problema web al seleccionar la entidad - Excel no creado")
-        browser.quit()
-        return   
-        
-    time.sleep(3) #NUNCA BORRAR ESTE HP SLEEP
-    
-    dropdown1= Select(browser.find_element_by_id('ddlEntidadEspecialidad'))
-    dropdown1.select_by_visible_text(db_sheet.cell(row=fila_proceso,column=col_entidad).value)
-    
-
-    inputRadicado = browser.find_element_by_id('divNumRadicacion').find_element_by_tag_name('input')
-    inputRadicado.send_keys(process_number_given)
-    
-    try:
-        WebDriverWait(browser, timeout).until(EC.element_to_be_clickable((By.ID, "sliderBehaviorNumeroProceso_railElement")))                                
-    except TimeoutException:
-        print("Problema web al dar click en la barra para iniciar la consulta - Excel no creado")
-        browser.quit()
-        return
-    
-    inputElement7=browser.find_element_by_id("sliderBehaviorNumeroProceso_railElement")
-    inputElement7.click()
-
-    btnconsulta=browser.find_element_by_xpath('/html/body/form/div[2]/table/tbody/tr[2]/td/table/tbody/tr/td/div[3]/table/tbody/tr[4]/td/div[1]/table/tbody/tr[3]/td/input[1]')
-    btnconsulta.click()
-    
-    try:
-        WebDriverWait(browser, timeout2).until(EC.visibility_of_element_located((By.CLASS_NAME, "ActuacionesDetalle")))                                
-    except TimeoutException:
-        print("Problema web al cargar tabla de informacion de Actuaciones - Excel no creado")
-        browser.quit()
-        return
+    if flag_browser==0:
+        browser=search_process(process_number_given)
+    else:
+        pass
     
     despacho=browser.find_element_by_id('lblJuzgadoActual').text
     ponente=browser.find_element_by_id('lblPonente').text
@@ -400,7 +419,7 @@ def create_excel_file (process_number_given):
         
 
     tabla_detalle=browser.find_element_by_class_name('ActuacionesDetalle')
-    cantidad_actuaciones=tabla_detalle.find_elements_by_tag_name('tr')
+    cantidad_actuaciones=len(tabla_detalle.find_elements_by_tag_name('tr'))
     
     lista_fecha_actuaciones=[]
     lista_actuaciones=[]
@@ -410,7 +429,7 @@ def create_excel_file (process_number_given):
     lista_fecha_registro=[]
 
     #we have to substract 1 , due to cantidad_actuaciones is including the header.
-    for i in range(len(cantidad_actuaciones)-1):
+    for i in range(cantidad_actuaciones-1):
     
         fecha_actuacion='rptActuaciones_lblFechaActuacion_'
         actuacion='rptActuaciones_lblActuacion_'
@@ -500,22 +519,44 @@ def create_excel_file (process_number_given):
     main_sheet.merge_cells(start_row=st_row+1, start_column=41, end_row=st_row+1, end_column=41+3)
     main_sheet.merge_cells(start_row=st_row+1, start_column=45, end_row=st_row+1, end_column=45+3)
     
+    #Open DB_ Actuaciones to record all data about actuaciones
+    wb_db_actuaciones=openpyxl.load_workbook('Database-Actuaciones.xlsx')
+    actuaciones_sheet=wb_db_actuaciones['Actuaciones']
     
     
-    
+    empty_row_actuaciones=1
+    while (actuaciones_sheet.cell(row = empty_row_actuaciones, column = 1).value != None) :
+      empty_row_actuaciones += 1
+      
+
     #define the row number, in which the algorithm will start writing the "actuaciones"
     empty_row=st_row+2
     #Define the cell to copy the style
-    style_source='C31'
+    style_source='C'+str(empty_row)
+    
+    
         
     for i in range (len(lista_fecha_actuaciones)):
                 
+        if flag_actuaciones==0:
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_numero_proceso).value=process_number_given
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_fecha_actuacion).value=lista_fecha_actuaciones[i]
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_actuacion).value=lista_actuaciones[i]
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_anotacion).value=lista_anotaciones[i]
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_fecha_ini_termino).value=lista_fecha_inicia[i]
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_fecha_fin_termino).value=lista_fecha_termina[i]
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_fecha_registro).value=lista_fecha_registro[i]
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_estado).value=estado_choices[0]
+        else:
+            pass
+
         main_sheet.cell(row=(empty_row+i),column=3).value=lista_fecha_actuaciones[i]
         main_sheet.cell(row=(empty_row+i),column=7).value=lista_actuaciones[i]
         main_sheet.cell(row=(empty_row+i),column=11).value=lista_anotaciones[i]
         main_sheet.cell(row=(empty_row+i),column=37).value=lista_fecha_inicia[i]
         main_sheet.cell(row=(empty_row+i),column=41).value=lista_fecha_termina[i]
         main_sheet.cell(row=(empty_row+i),column=45).value=lista_fecha_registro[i]
+
         main_sheet.row_dimensions[empty_row+i].height = 33
         
         main_sheet.cell(row=(empty_row+i), column=3)._style=deepcopy(main_sheet[style_source]._style)
@@ -538,8 +579,106 @@ def create_excel_file (process_number_given):
     rd = main_sheet.row_dimensions[st_row+1]
     rd.height = 27
     
-    browser.quit()
+    if flag_browser==0:
+        browser.quit()
+    else:
+        pass
     new_path="./Procesos/" + process_number_given + '.xlsx'
     wb.save(new_path) 
-    
+    wb_db_actuaciones.save('Database-Actuaciones.xlsx')
     print('Excel creado exitosamente - OK')
+    print('Actuaciones guardas en la BD - OK')
+
+
+#----------------------------- --------------------------------------------------Actualizacion de Procesos --------------------------------------------------------------#
+    
+def encontrar_actuaciones():
+    
+    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
+    db_sheet=wb_database['Hoja1']
+    
+    wb_db_actuaciones=openpyxl.load_workbook('Database-Actuaciones.xlsx')
+    actuaciones_sheet=wb_db_actuaciones['Actuaciones']
+   
+    
+    lista_procesos_excel=[]
+
+    for cell in db_sheet['C']:
+        if cell.value !=None:
+            lista_procesos_excel.append(cell.value)
+        
+    lista_actuaciones_excel=[]
+    
+    for cell in actuaciones_sheet['A']:
+        lista_actuaciones_excel.append(cell.value)
+    
+    
+    for i in range (1,len(lista_procesos_excel)):
+        try:
+            browser=search_process(lista_procesos_excel[i])
+        except:
+            browser.quit()
+            print('Error se continuara buscando el siguiente proceso')
+            continue
+    
+        tabla_detalle=browser.find_element_by_class_name('ActuacionesDetalle')
+        
+        #we have to substract 1 , due to cantidad_actuaciones is including the header.
+        cantidad_actuaciones_web=len(tabla_detalle.find_elements_by_tag_name('tr'))-1
+        cant_actuaciones_excel=lista_actuaciones_excel.count(lista_procesos_excel[i])
+
+        if cantidad_actuaciones_web>cant_actuaciones_excel:
+            create_excel_file(lista_procesos_excel[i],flag_browser=1,flag_actuaciones=1,browser=browser)
+            cant_nuevas_actuaciones=cantidad_actuaciones_web-cant_actuaciones_excel
+            
+            #lista_fecha_actuaciones=[]
+            #lista_actuaciones=[]
+            #lista_anotaciones=[]
+            #lista_fecha_inicia=[]
+            #lista_fecha_termina=[]
+            #lista_fecha_registro=[]
+
+            empty_row_actuaciones=1
+            while (actuaciones_sheet.cell(row = empty_row_actuaciones, column = 1).value != None) :
+              empty_row_actuaciones += 1
+            
+         
+            #we have to substract 1 , due to cantidad_actuaciones is including the header.
+            for j in range(cant_nuevas_actuaciones):
+
+                fecha_actuacion='rptActuaciones_lblFechaActuacion_'
+                actuacion='rptActuaciones_lblActuacion_'
+                anotacion='rptActuaciones_lblAnotacion_'
+                fecha_inicia='rptActuaciones_lblFechaInicio_'
+                fecha_termina='rptActuaciones_lblFechaFin_'
+                fecha_registro='rptActuaciones_lblFechaRegistro_'
+                
+                fecha_actuacion += str(j)
+                #lista_fecha_actuaciones.append(browser.find_element_by_id(fecha_actuacion).text)
+                actuacion += str(j)
+                #lista_actuaciones.append(browser.find_element_by_id(actuacion).text)
+                anotacion += str(j)
+                #lista_anotaciones.append(browser.find_element_by_id(anotacion).text)
+                fecha_inicia += str(j)
+                #lista_fecha_inicia.append(browser.find_element_by_id(fecha_inicia).text)
+                fecha_termina += str(j)
+                #lista_fecha_termina.append(browser.find_element_by_id(fecha_termina).text)
+                fecha_registro += str(j)
+                #lista_fecha_registro.append(browser.find_element_by_id(fecha_registro).text)
+            
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_numero_proceso).value=lista_procesos_excel[i]
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_actuacion).value=browser.find_element_by_id(fecha_actuacion).text
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_actuacion).value=browser.find_element_by_id(actuacion).text
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_anotacion).value=browser.find_element_by_id(anotacion).text
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_ini_termino).value=browser.find_element_by_id(fecha_inicia).text
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_fin_termino).value=browser.find_element_by_id(fecha_termina).text
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_registro).value=browser.find_element_by_id(fecha_registro).text
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_estado).value=estado_choices[1]
+     
+            browser.quit()
+            wb_db_actuaciones.save('Database-Actuaciones.xlsx')
+            print('Proceso ' + lista_procesos_excel[i] +' Actualizado')
+
+        else:
+            pass
+        

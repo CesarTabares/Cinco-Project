@@ -8,7 +8,7 @@ from selenium import webdriver
 import wx
 import time
 import openpyxl
-from webscraping import asignar_nro_proceso, get_the_web
+from webscraping import asignar_nro_proceso, get_the_web, encontrar_actuaciones
 from get_lists import get_cities_entities_web, make_cities_entities_dictionary, make_others_list
 import os
 
@@ -73,12 +73,15 @@ class MyFrame(wx.Frame):
         
         button2 = wx.Button(self.panel, id=wx.ID_ANY, label="Consultar Proceso" ,pos=(900, 150), size=(200, 50))
         button2.Bind(wx.EVT_BUTTON, self.BtnConsultaProceso)
-        
-        button3 = wx.Button(self.panel, id=wx.ID_ANY, label="Actualizar información proceso" ,pos=(900, 200), size=(200, 50))
-        button3.Bind(wx.EVT_BUTTON, self.onButton3)
-        
-        btn_asignar_procesos = wx.Button(self.panel, id=wx.ID_ANY, label="Ident. Nro Proceso" ,pos=(900, 250), size=(200, 50))
+                
+        btn_asignar_procesos = wx.Button(self.panel, id=wx.ID_ANY, label="Ident. Nro Proceso\n(Proceso Auto)" ,pos=(900, 200), size=(200, 50))
         btn_asignar_procesos.Bind(wx.EVT_BUTTON, self.onBtn_asignar_procesos)
+        
+        btn_auto_actuaciones = wx.Button(self.panel, id=wx.ID_ANY, label="Encontrar actuaciones\n(Proceso Auto)" ,pos=(900, 250), size=(200, 50))
+        btn_auto_actuaciones.Bind(wx.EVT_BUTTON, self.onBtn_encontrar_actuaciones)
+        
+        btn_actualizar_proceso = wx.Button(self.panel, id=wx.ID_ANY, label="Actualizar Proceso" ,pos=(900, 300), size=(200, 50))
+        btn_actualizar_proceso.Bind(wx.EVT_BUTTON, self.onBtn_actualizar_proceso)
         
         ico = wx.Icon('Icono.ico', wx.BITMAP_TYPE_ICO)
         self.SetIcon(ico)
@@ -93,15 +96,128 @@ class MyFrame(wx.Frame):
         consultawindow=ww_Consultar_Proceso(parent=self.panel)
         consultawindow.Show()
 
-        
-    def onButton3(self, event):
-        print ("Button pressed!")
-        
     def onBtn_asignar_procesos(self, event):
         asignar_nro_proceso()
-        
-    #-------------Button Functions-----------------#    
 
+    def onBtn_encontrar_actuaciones(self, event):
+        encontrar_actuaciones()
+        
+    def onBtn_actualizar_proceso(self, event):
+        ww_actualizar_proceso(parent=self.panel).Show()
+                
+    #-------------Button Functions-----------------#    
+        
+        
+class ww_actualizar_proceso(wx.Frame):
+    def __init__(self,parent):
+        wx.Frame.__init__(self,parent, -1,'Actualizar Proceso', size=(600,700))   
+        try:
+            image_file = 'CINCO CONSULTORES.jpg'
+            bmp1 = wx.Image(
+                image_file, 
+                wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            
+            #self.panel = wx.StaticBitmap(
+             #   self, -1, bmp1, (0, 0))
+            self.panel=wx.Panel(self)
+            self.panel.SetBackgroundColour(wx.Colour('white'))
+        except IOError:
+            print ("Image file %s not found"  )
+            raise SystemExit
+
+        ico = wx.Icon('Icono.ico', wx.BITMAP_TYPE_ICO)
+        self.SetIcon(ico)
+        self.fgs= wx.GridBagSizer(0,0)
+        
+        title_font= wx.Font(20, wx.FONTFAMILY_DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        
+        self.lblactualizar_procesos=wx.StaticText(self.panel, label='Actualizar Procesos')
+        self.lblclientes_abiertos=wx.StaticText(self.panel, label='Clientes Con\nProcesos Abiertos')
+        self.lblprocesos_abiertos=wx.StaticText(self.panel, label='Procesos Abiertos')
+        self.lblactuaciones_pend=wx.StaticText(self.panel, label='Actuaciones\nPendientes')
+        self.lblactuacion=wx.StaticText(self.panel, label='Actuacion')
+        self.lbldescripcion=wx.StaticText(self.panel, label='Descripcion')
+        self.lblfecha_actuacion=wx.StaticText(self.panel, label='Fecha Actuacion')
+        self.lblfecha_fin_termino=wx.StaticText(self.panel, label='Fecha Fin Termino')
+        self.lblactuacion_relacionada=wx.StaticText(self.panel, label='¿La actuacion esta relacionada con algunas de las actuaciones anteriores?')
+        self.lblactuacion_propia=wx.StaticText(self.panel, label='¿La actuacion es Propia?')
+        self.lblinfo_adicional=wx.StaticText(self.panel, label='Informacion Adicional')
+        self.lblestrategia=wx.StaticText(self.panel, label='Estrategia')
+        self.lblfecha_limite=wx.StaticText(self.panel, label='Fecha Limite')
+        self.lblestado=wx.StaticText(self.panel, label='Estado')
+        self.lbrptaactuacion=wx.StaticText(self.panel, label='')
+        self.lbrptadescripcion=wx.StaticText(self.panel, label='')
+        self.lbrptafecha_actuacion=wx.StaticText(self.panel, label='')
+        self.lbrptafecha_fin_termino=wx.StaticText(self.panel, label='')
+        self.comboclientes_abiertos=wx.ComboBox(self.panel,value='', choices=[])
+        self.comboprocesos_abiertos=wx.ComboBox(self.panel,value='', choices=[])
+        self.comboactuaciones_pend=wx.ComboBox(self.panel,value='', choices=[])
+        self.comboactuacion_relacionada=wx.ComboBox(self.panel,value='', choices=[])
+        self.txtinfo_adicional=wx.TextCtrl(self.panel,style=wx.TE_MULTILINE)
+        self.checkactuacion_propia_si=wx.CheckBox(self.panel, label= "Si")
+        self.checkactuacion_propia_no=wx.CheckBox(self.panel, label= "No")
+        
+        btn_actualizar = wx.Button(self.panel, label="Actualizar",size=(-1,-1))
+        btn_cancelar=wx.Button(self.panel, label="Cancelar",size=(-1,-1))
+
+        
+        self.lblactualizar_procesos.SetFont(title_font)
+        
+        self.fgs.Add(self.lblactualizar_procesos, pos=(1,2),span=(1,3), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblclientes_abiertos, pos=(3,1),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblprocesos_abiertos, pos=(5,1),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblactuaciones_pend, pos=(7,1),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblactuacion, pos=(10,1),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lbldescripcion, pos=(10,2),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblfecha_actuacion, pos=(10,3),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblfecha_fin_termino, pos=(10,4),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblactuacion_relacionada, pos=(13,1),span=(1,3), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblactuacion_propia, pos=(15,1),span=(2,1), flag= wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=5)
+        self.fgs.Add(self.lblinfo_adicional, pos=(19,1),span=(1,3), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblestrategia, pos=(25,1),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblfecha_limite, pos=(25,2),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblestado, pos=(25,3),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lbrptaactuacion, pos=(11,1),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lbrptadescripcion, pos=(11,2),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lbrptafecha_actuacion, pos=(11,3),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lbrptafecha_fin_termino, pos=(11,4),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.comboclientes_abiertos, pos=(3,2),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.comboprocesos_abiertos, pos=(5,2),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.comboactuaciones_pend, pos=(7,2),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.comboactuacion_relacionada, pos=(13,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.txtinfo_adicional, pos=(20,1),span=(4,4), flag= wx.ALL | wx.EXPAND, border=0)
+        self.fgs.Add(self.checkactuacion_propia_si, pos=(15,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.checkactuacion_propia_no, pos=(16,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(btn_actualizar, pos=(25,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(btn_cancelar, pos=(26,4),span=(1,1), flag= wx.ALL, border=5)
+
+        self.checkactuacion_propia_si.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_propia_si)
+        self.checkactuacion_propia_no.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_propia_no)
+        
+        
+        btn_actualizar.Bind(wx.EVT_BUTTON, self.Onactualizar)
+        btn_cancelar.Bind(wx.EVT_BUTTON, self.Oncancelar)
+        
+
+        mainSizer= wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(self.fgs,0, flag=wx.ALIGN_LEFT)
+        self.panel.SetSizerAndFit(mainSizer)
+
+    def oncheckactuacion_propia_si(self,event):
+        if self.checkactuacion_propia_no.IsChecked():
+            self.checkactuacion_propia_no.SetValue(False)
+    
+    def oncheckactuacion_propia_no(self,event):
+            if self.checkactuacion_propia_si.IsChecked():
+                self.checkactuacion_propia_si.SetValue(False) 
+    
+    def Onactualizar(self,event):
+        pass
+    
+    def Oncancelar(self,event):
+        pass
+    
+            
         
 class ww_Ingresar_Proceso(wx.Frame):
    
@@ -249,7 +365,6 @@ class ww_Ingresar_Proceso(wx.Frame):
         self.fgs.Add(self.lblid_tercero , pos=(11,7),span=(1,1), flag= wx.ALL, border=5)
         self.id_tercero = wx.TextCtrl(self.panel)
         self.fgs.Add(self.id_tercero , pos=(11,8),span=(1,4), flag= wx.ALL, border=5)
-
         ################################ SECCION TERCERO ############################################ 
 
         ################################ CUANTIA ############################################
@@ -522,12 +637,9 @@ class ww_Ingresar_Proceso(wx.Frame):
 
 class ww_Consultar_Proceso(wx.Frame):
     
-
     def __init__(self,parent):
         wx.Frame.__init__(self,parent, -1,'Consultar Proceso', size=(1200,700))   
-
         try:
-            
             image_file = 'CINCO CONSULTORES.jpg'
             bmp1 = wx.Image(
                 image_file, 
@@ -535,9 +647,6 @@ class ww_Consultar_Proceso(wx.Frame):
             
             self.panel = wx.StaticBitmap(
                 self, -1, bmp1, (0, 0))
-           
-       
-          
         except IOError:
             print ("Image file %s not found"  )
             raise SystemExit
@@ -565,7 +674,6 @@ class MyApp(wx.App):
         self.frame= MyFrame()
         self.frame.Show()
         return True       
- 
 # Run the program     
 app=MyApp()
 app.MainLoop()
