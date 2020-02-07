@@ -7,10 +7,16 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import Select
 from copy import copy, deepcopy
 
+from datetime import datetime
+
 import time
 import openpyxl
 import openpyxl.worksheet.cell_range
 from openpyxl.styles import Alignment
+
+import os
+import smtplib
+from email.message import EmailMessage
 
 
 timeout=10
@@ -632,10 +638,10 @@ def encontrar_actuaciones():
             cant_nuevas_actuaciones=cantidad_actuaciones_web-cant_actuaciones_excel
             
             #lista_fecha_actuaciones=[]
-            #lista_actuaciones=[]
+            lista_actuaciones_nuevas=[]
             #lista_anotaciones=[]
             #lista_fecha_inicia=[]
-            #lista_fecha_termina=[]
+            lista_fecha_termina_nuevas=[]
             #lista_fecha_registro=[]
 
             empty_row_actuaciones=1
@@ -656,13 +662,13 @@ def encontrar_actuaciones():
                 fecha_actuacion += str(j)
                 #lista_fecha_actuaciones.append(browser.find_element_by_id(fecha_actuacion).text)
                 actuacion += str(j)
-                #lista_actuaciones.append(browser.find_element_by_id(actuacion).text)
+                lista_actuaciones_nuevas.append(browser.find_element_by_id(actuacion).text)
                 anotacion += str(j)
                 #lista_anotaciones.append(browser.find_element_by_id(anotacion).text)
                 fecha_inicia += str(j)
                 #lista_fecha_inicia.append(browser.find_element_by_id(fecha_inicia).text)
                 fecha_termina += str(j)
-                #lista_fecha_termina.append(browser.find_element_by_id(fecha_termina).text)
+                lista_fecha_termina_nuevas.append(browser.find_element_by_id(fecha_termina).text)
                 fecha_registro += str(j)
                 #lista_fecha_registro.append(browser.find_element_by_id(fecha_registro).text)
             
@@ -675,10 +681,76 @@ def encontrar_actuaciones():
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_registro).value=browser.find_element_by_id(fecha_registro).text
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_estado).value=estado_choices[1]
      
+            print(lista_fecha_termina_nuevas)
             browser.quit()
+            send_email('cinconotificaciones@gmail.com',lista_procesos_excel[i],lista_actuaciones_nuevas,lista_fecha_termina_nuevas)
+            print('Emails Enviado')
             wb_db_actuaciones.save('Database-Actuaciones.xlsx')
             print('Proceso ' + lista_procesos_excel[i] +' Actualizado')
-
+            
         else:
+            browser.quit()
             pass
-        
+    print('Proceso Finalizado')
+
+def send_email(receiver,radicado_ini,lista_actuaciones_nuevas,lista_fechafin_nuevas):
+
+    EMAIL_ADDRESS='cinconotificaciones@gmail.com'
+    EMAIL_PASSWORD='tydavhmndyxluhbe'
+    
+    msg = EmailMessage()
+    msg['Subject'] = 'Actualizacion Proceso ' + radicado_ini + " // " + str(datetime.today().strftime('%d-%m-%Y'))
+    msg['From'] = EMAIL_ADDRESS
+    msg['To'] = receiver
+
+
+    initial_html="""\
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+    html{
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    h1{
+        color:blue;
+    }
+    table{
+        border-collapse: collapse;
+    }
+    th,td{
+        border: 1px solid black;
+    }
+    
+    </style>
+    </head>
+        <body>
+            <h1>Nueva Actuacion</h1>
+            <p>Se informa que el proceso: """+radicado_ini+""" tiene las siguientes actualizaciones.</p>
+            <table>
+                <tr>
+                    <th>Actuacion
+                    <th>Fecha Fin de Termino
+                </tr>    
+    
+    """
+    
+    for i in range (len(lista_actuaciones_nuevas)):
+        initial_html+="""<tr>
+        <td>"""+lista_actuaciones_nuevas[i]+"""</td>
+        <td>"""+lista_fechafin_nuevas[i]+"""</td>
+        </tr>"""
+
+    final_html=""" </table>
+                    <p>Favor actualizar la informacion de la actuacion</p>
+                    <p>Cinco Consultores</p>    
+                    </body>
+                </html>"""
+    
+    total_html=initial_html+final_html
+
+    msg.add_alternative(total_html, subtype='html')
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+        smtp.send_message(msg)

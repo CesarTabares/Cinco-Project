@@ -77,7 +77,7 @@ class MyFrame(wx.Frame):
         btn_asignar_procesos = wx.Button(self.panel, id=wx.ID_ANY, label="Ident. Nro Proceso\n(Proceso Auto)" ,pos=(900, 200), size=(200, 50))
         btn_asignar_procesos.Bind(wx.EVT_BUTTON, self.onBtn_asignar_procesos)
         
-        btn_auto_actuaciones = wx.Button(self.panel, id=wx.ID_ANY, label="Encontrar actuaciones\n(Proceso Auto)" ,pos=(900, 250), size=(200, 50))
+        btn_auto_actuaciones = wx.Button(self.panel, id=wx.ID_ANY, label="Encontrar actuaciones y Enviar Correo\n(Proceso Auto)" ,pos=(900, 250), size=(200, 50))
         btn_auto_actuaciones.Bind(wx.EVT_BUTTON, self.onBtn_encontrar_actuaciones)
         
         btn_actualizar_proceso = wx.Button(self.panel, id=wx.ID_ANY, label="Actualizar Proceso" ,pos=(900, 300), size=(200, 50))
