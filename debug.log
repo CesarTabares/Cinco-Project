@@ -900,3 +900,18 @@
 [0205/164525.934:ERROR:process_reader_win.cc(123)] NtOpenThread: {Acceso denegado} Un proceso ha solicitado acceso a un objeto, pero no se le han concedido esos derechos de acceso. (0xc0000022)
 [0205/164525.934:ERROR:exception_snapshot_win.cc(98)] thread ID 15096 not found in process
 [0206/192950.171:ERROR:file_io.cc(89)] ReadExactly: expected 36, observed 0
+[0210/155131.820:ERROR:process_reader_win.cc(151)] SuspendThread: Acceso denegado. (0x5)
+[0210/155131.820:ERROR:process_reader_win.cc(151)] SuspendThread: Acceso denegado. (0x5)
+[0210/155131.820:ERROR:process_reader_win.cc(123)] NtOpenThread: {Acceso denegado} Un proceso ha solicitado acceso a un objeto, pero no se le han concedido esos derechos de acceso. (0xc0000022)
+[0210/155131.820:ERROR:exception_snapshot_win.cc(98)] thread ID 1204 not found in process
+[0210/155131.836:ERROR:process_reader_win.cc(151)] SuspendThread: Acceso denegado. (0x5)
+[0210/155131.836:ERROR:process_reader_win.cc(123)] NtOpenThread: {Acceso denegado} Un proceso ha solicitado acceso a un objeto, pero no se le han concedido esos derechos de acceso. (0xc0000022)
+[0210/155131.836:ERROR:exception_snapshot_win.cc(98)] thread ID 6308 not found in process
+[0210/155131.844:ERROR:process_reader_win.cc(123)] NtOpenThread: {Acceso denegado} Un proceso ha solicitado acceso a un objeto, pero no se le han concedido esos derechos de acceso. (0xc0000022)
+[0210/155131.844:ERROR:exception_snapshot_win.cc(98)] thread ID 11864 not found in process
+[0210/155526.887:ERROR:process_reader_win.cc(151)] SuspendThread: Acceso denegado. (0x5)
+[0210/155526.888:ERROR:process_reader_win.cc(151)] SuspendThread: Acceso denegado. (0x5)
+[0210/155526.888:ERROR:process_reader_win.cc(123)] NtOpenThread: {Acceso denegado} Un proceso ha solicitado acceso a un objeto, pero no se le han concedido esos derechos de acceso. (0xc0000022)
+[0210/155526.888:ERROR:exception_snapshot_win.cc(98)] thread ID 1780 not found in process
+[0210/155526.909:ERROR:process_reader_win.cc(123)] NtOpenThread: {Acceso denegado} Un proceso ha solicitado acceso a un objeto, pero no se le han concedido esos derechos de acceso. (0xc0000022)
+[0210/155526.909:ERROR:exception_snapshot_win.cc(98)] thread ID 8960 not found in process

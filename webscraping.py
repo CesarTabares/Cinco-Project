@@ -19,6 +19,7 @@ import smtplib
 from email.message import EmailMessage
 
 
+
 timeout=10
 timeout2=20
 
@@ -45,17 +46,20 @@ col_nit_demandado=20
 col_tipo_persona_tercero=21
 col_razon_social_tercero=22
 col_nit_tercero=23
+col_nit_cliente=24
+col_nombre_cliente=25
 #-- Excel BD Procesos--#
 
 #-- Excel BD Actuaciones--#
 col_numero_proceso=1
-col_fecha_actuacion=2
-col_actuacion=3
-col_anotacion=4
-col_fecha_ini_termino=5
-col_fecha_fin_termino=6
-col_fecha_registro=7
-col_estado=8
+col_radicado_ini_act=2
+col_fecha_actuacion=3
+col_actuacion=4
+col_anotacion=5
+col_fecha_ini_termino=6
+col_fecha_fin_termino=7
+col_fecha_registro=8
+col_estado=9
 estado_choices=['Ok','Pendiente']
 #-- Excel BD Actuaciones--#
 
@@ -298,7 +302,7 @@ def asignar_nro_proceso ():
     print('DONE - SIN ERRORES - CESAR PUTO AMO')
     browser.quit()
          
-#---------------------------Assign a process number in the excel file----------------------------#
+#---------------------------Find and Assign a process number in the excel file----------------------------#
     
 def search_process(process_number_given):
     browser=get_the_web()
@@ -596,7 +600,7 @@ def create_excel_file (process_number_given,flag_browser,flag_actuaciones,browse
     print('Actuaciones guardas en la BD - OK')
 
 
-#----------------------------- --------------------------------------------------Actualizacion de Procesos --------------------------------------------------------------#
+
     
 def encontrar_actuaciones():
     
@@ -627,6 +631,10 @@ def encontrar_actuaciones():
             print('Error se continuara buscando el siguiente proceso')
             continue
     
+        fila_radicado_ini=i+1
+        radicado_ini=db_sheet.cell(row=fila_radicado_ini, column=col_radicado_ini).value
+        print('aca')
+        print(radicado_ini)
         tabla_detalle=browser.find_element_by_class_name('ActuacionesDetalle')
         
         #we have to substract 1 , due to cantidad_actuaciones is including the header.
@@ -673,6 +681,7 @@ def encontrar_actuaciones():
                 #lista_fecha_registro.append(browser.find_element_by_id(fecha_registro).text)
             
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_numero_proceso).value=lista_procesos_excel[i]
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_radicado_ini_act).value=radicado_ini
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_actuacion).value=browser.find_element_by_id(fecha_actuacion).text
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_actuacion).value=browser.find_element_by_id(actuacion).text
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_anotacion).value=browser.find_element_by_id(anotacion).text
@@ -683,7 +692,7 @@ def encontrar_actuaciones():
      
             print(lista_fecha_termina_nuevas)
             browser.quit()
-            send_email('cinconotificaciones@gmail.com',lista_procesos_excel[i],lista_actuaciones_nuevas,lista_fecha_termina_nuevas)
+            #send_email('cinconotificaciones@gmail.com',lista_procesos_excel[i],lista_actuaciones_nuevas,lista_fecha_termina_nuevas)
             print('Emails Enviado')
             wb_db_actuaciones.save('Database-Actuaciones.xlsx')
             print('Proceso ' + lista_procesos_excel[i] +' Actualizado')

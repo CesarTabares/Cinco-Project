@@ -89,6 +89,7 @@ def make_others_list():
     tipos_persona=[]
     tipos_proceso=[]
     tipos_proceso_general=[]
+    tipos_estado=[]
 
     for cell in other_lists_sheet['A']:
         if cell.value != None:
@@ -106,13 +107,69 @@ def make_others_list():
         if cell.value != None:
             tipos_proceso_general.append(cell.value)
     
+    for cell in other_lists_sheet['E']:
+        if cell.value != None:
+            tipos_estado.append(cell.value)
+    
     smmlv= other_lists_sheet.cell(row=2,column=6).value
 
-    return tipos_sujeto,tipos_persona,tipos_proceso, tipos_proceso_general, smmlv
+    return tipos_sujeto,tipos_persona,tipos_proceso, tipos_proceso_general, smmlv, tipos_estado
         
+def get_clients_open():
+    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
+    db_sheet=wb_database['Hoja1']
+    estados=make_others_list()
+    
+    list_id_clients=[]
+    list_estado=[]
+    list_open_clients=[]
+    
+    for cell in db_sheet['X']:
+        list_id_clients.append(cell.value)
+    
+    for cell in db_sheet['Z']:
+        list_estado.append(cell.value)
+    
+    index_clientes_abiertos=[i for i, value in enumerate(list_id_clients) if list_estado[i]==estados[5][1]]
+    
+    
+    
+    for i in index_clientes_abiertos:
+        list_open_clients.append(list_id_clients[i])
+    
+    list_open_clients=sorted(list(set(list_open_clients)))
+
+
+    return list_open_clients
+
+def get_client_process_open(client):
+    
+    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
+    db_sheet=wb_database['Hoja1']
+    estados=make_others_list()
+    
+    lista_procesos_abierto_cliente=[]
+    lista_radicado_ini=[]
+    list_id_clients=[]
+    list_estado=[]
+    
+    for cell in db_sheet['X']:
+        list_id_clients.append(cell.value)
         
+    for cell in db_sheet['Z']:
+        list_estado.append(cell.value)  
         
-        
+    for cell in db_sheet['B']:
+        lista_radicado_ini.append(cell.value)
+    
+    index_procesos_abiertos=[i for i, value in enumerate(list_id_clients) if list_estado[i]==estados[5][1] and list_id_clients[i]==client]   
+
+    for i in index_procesos_abiertos:
+        lista_procesos_abierto_cliente.append(lista_radicado_ini[i])
+    
+    return lista_procesos_abierto_cliente
+    
+ 
         
         
         

@@ -9,7 +9,7 @@ import wx
 import time
 import openpyxl
 from webscraping import asignar_nro_proceso, get_the_web, encontrar_actuaciones
-from get_lists import get_cities_entities_web, make_cities_entities_dictionary, make_others_list
+from get_lists import get_cities_entities_web, make_cities_entities_dictionary, make_others_list, get_clients_open, get_client_process_open
 import os
 
 col_radicado_ini=2
@@ -34,7 +34,8 @@ col_nit_demandado=20
 col_tipo_persona_tercero=21
 col_razon_social_tercero=22
 col_nit_tercero=23
-
+col_nit_cliente=24
+col_nombre_cliente=25
 
 
 DB = openpyxl.load_workbook('Database-Process.xlsx')
@@ -109,6 +110,8 @@ class MyFrame(wx.Frame):
         
         
 class ww_actualizar_proceso(wx.Frame):
+    
+    
     def __init__(self,parent):
         wx.Frame.__init__(self,parent, -1,'Actualizar Proceso', size=(600,700))   
         try:
@@ -128,8 +131,10 @@ class ww_actualizar_proceso(wx.Frame):
         ico = wx.Icon('Icono.ico', wx.BITMAP_TYPE_ICO)
         self.SetIcon(ico)
         self.fgs= wx.GridBagSizer(0,0)
-        
         title_font= wx.Font(20, wx.FONTFAMILY_DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        
+        list_clients_open=get_clients_open()
+        
         
         self.lblactualizar_procesos=wx.StaticText(self.panel, label='Actualizar Procesos')
         self.lblclientes_abiertos=wx.StaticText(self.panel, label='Clientes Con\nProcesos Abiertos')
@@ -149,7 +154,7 @@ class ww_actualizar_proceso(wx.Frame):
         self.lbrptadescripcion=wx.StaticText(self.panel, label='')
         self.lbrptafecha_actuacion=wx.StaticText(self.panel, label='')
         self.lbrptafecha_fin_termino=wx.StaticText(self.panel, label='')
-        self.comboclientes_abiertos=wx.ComboBox(self.panel,value='', choices=[])
+        self.comboclientes_abiertos=wx.ComboBox(self.panel,value='', choices=list_clients_open)
         self.comboprocesos_abiertos=wx.ComboBox(self.panel,value='', choices=[])
         self.comboactuaciones_pend=wx.ComboBox(self.panel,value='', choices=[])
         self.comboactuacion_relacionada=wx.ComboBox(self.panel,value='', choices=[])
@@ -194,6 +199,7 @@ class ww_actualizar_proceso(wx.Frame):
         self.checkactuacion_propia_si.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_propia_si)
         self.checkactuacion_propia_no.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_propia_no)
         
+        self.comboclientes_abiertos.Bind(wx.EVT_COMBOBOX, self.get_open_client_process)
         
         btn_actualizar.Bind(wx.EVT_BUTTON, self.Onactualizar)
         btn_cancelar.Bind(wx.EVT_BUTTON, self.Oncancelar)
@@ -209,7 +215,15 @@ class ww_actualizar_proceso(wx.Frame):
     
     def oncheckactuacion_propia_no(self,event):
             if self.checkactuacion_propia_si.IsChecked():
-                self.checkactuacion_propia_si.SetValue(False) 
+                self.checkactuacion_propia_si.SetValue(False)
+    
+    def get_open_client_process(self, event):
+        
+        
+        cliente = self.comboclientes_abiertos.GetValue()
+        procesos_abiertos= get_client_process_open(cliente)
+        self.comboprocesos_abiertos.Clear()
+        self.comboprocesos_abiertos.AppendItems(procesos_abiertos)
     
     def Onactualizar(self,event):
         pass
@@ -520,6 +534,7 @@ class ww_Ingresar_Proceso(wx.Frame):
         global col_tipo_persona_tercero
         global col_razon_social_tercero
         global col_nit_tercero
+        global col_nit_cliente
         
         
 
@@ -629,6 +644,17 @@ class ww_Ingresar_Proceso(wx.Frame):
         Apoderado = self.apoderado_ini.GetValue()
         sheet.cell(row = Nproce, column = col_apoderado).value =Apoderado
         self.apoderado_ini.Value=""
+        
+        if Tipo_sujeto==self.other_lists[0][1]:
+            sheet.cell(row = Nproce, column = col_nit_cliente).value=Id_demandante
+            sheet.cell(row = Nproce, column = col_nombre_cliente).value=Razon_social_demandante
+        elif Tipo_sujeto==self.other_lists[0][2]:
+            sheet.cell(row = Nproce, column = col_nit_cliente).value=Id_demandado
+            sheet.cell(row = Nproce, column = col_nombre_cliente).value=Razon_social_demandado
+        elif Tipo_sujeto==self.other_lists[0][3]:
+            sheet.cell(row = Nproce, column = col_nit_cliente).value=Id_tercero
+            sheet.cell(row = Nproce, column = col_nombre_cliente).value=Razon_social_tercero
+                        
          
         success_msgbox=wx.MessageDialog(None,'Registro añadido - Este mensaje aun no garantiza que nada haya fallado en el proceso de agregar el registro - /n EnConstruccion','Status',wx.OK)
         success_msgbox.ShowModal()
