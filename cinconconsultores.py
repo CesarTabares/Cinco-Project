@@ -9,7 +9,7 @@ import wx
 import time
 import openpyxl
 from webscraping import asignar_nro_proceso, get_the_web, encontrar_actuaciones
-from get_lists import get_cities_entities_web, make_cities_entities_dictionary, make_others_list, get_clients_open, get_client_process_open
+from get_lists import get_cities_entities_web, make_cities_entities_dictionary, make_others_list, get_clients_info, get_client_process_open,get_actuaciones_process_open
 import os
 
 col_radicado_ini=2
@@ -36,6 +36,19 @@ col_razon_social_tercero=22
 col_nit_tercero=23
 col_nit_cliente=24
 col_nombre_cliente=25
+
+#-- Excel BD Actuaciones--#
+col_numero_proceso=1
+col_radicado_ini_act=2
+col_fecha_actuacion=3
+col_actuacion=4
+col_anotacion=5
+col_fecha_ini_termino=6
+col_fecha_fin_termino=7
+col_fecha_registro=8
+col_estado=9
+estado_choices=['Abierto','Cerrado']
+#-- Excel BD Actuaciones--#
 
 
 DB = openpyxl.load_workbook('Database-Process.xlsx')
@@ -127,23 +140,40 @@ class ww_actualizar_proceso(wx.Frame):
         except IOError:
             print ("Image file %s not found"  )
             raise SystemExit
-
+            
+        wb_database=openpyxl.load_workbook('Database-Process.xlsx')
+        self.db_sheet=wb_database['Hoja1']
+        
+        wb_actuaciones=openpyxl.load_workbook('Database-Actuaciones.xlsx')
+        self.act_sheet=wb_actuaciones['Actuaciones']
+        
+        estados=make_others_list()
+        self.estado_abierto=estados[5][1]
         ico = wx.Icon('Icono.ico', wx.BITMAP_TYPE_ICO)
         self.SetIcon(ico)
         self.fgs= wx.GridBagSizer(0,0)
+        
         title_font= wx.Font(20, wx.FONTFAMILY_DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        bold_font= wx.Font(70, wx.FONTFAMILY_DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         
-        list_clients_open=get_clients_open()
+        self.info_clients=get_clients_info(self.db_sheet,self.estado_abierto)
+        list_clients_open=self.info_clients[0]
         
+        self.id_clients=self.info_clients[1]
+        self.estado_clients=self.info_clients[2]
         
         self.lblactualizar_procesos=wx.StaticText(self.panel, label='Actualizar Procesos')
         self.lblclientes_abiertos=wx.StaticText(self.panel, label='Clientes Con\nProcesos Abiertos')
         self.lblprocesos_abiertos=wx.StaticText(self.panel, label='Procesos Abiertos')
         self.lblactuaciones_pend=wx.StaticText(self.panel, label='Actuaciones\nPendientes')
         self.lblactuacion=wx.StaticText(self.panel, label='Actuacion')
-        self.lbldescripcion=wx.StaticText(self.panel, label='Descripcion')
+        self.lblrptaactuacion=wx.StaticText(self.panel, label='')
+        self.lbldescripcion=wx.StaticText(self.panel, label='Descripcion\n\n')
+        self.txtdescripcion=wx.TextCtrl(self.panel ,style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.lblfecha_actuacion=wx.StaticText(self.panel, label='Fecha Actuacion')
+        self.lblrptafecha_actuacion=wx.StaticText(self.panel, label='')
         self.lblfecha_fin_termino=wx.StaticText(self.panel, label='Fecha Fin Termino')
+        self.lblrptafecha_fin_termino=wx.StaticText(self.panel, label='')
         self.lblactuacion_relacionada=wx.StaticText(self.panel, label='¿La actuacion esta relacionada con algunas de las actuaciones anteriores?')
         self.lblactuacion_propia=wx.StaticText(self.panel, label='¿La actuacion es Propia?')
         self.lblinfo_adicional=wx.StaticText(self.panel, label='Informacion Adicional')
@@ -167,39 +197,46 @@ class ww_actualizar_proceso(wx.Frame):
 
         
         self.lblactualizar_procesos.SetFont(title_font)
+        self.lblactuacion.SetFont(bold_font)
+        self.lbldescripcion.SetFont(bold_font)
+        self.lblfecha_actuacion.SetFont(bold_font)
+        self.lblfecha_fin_termino.SetFont(bold_font)
+        
         
         self.fgs.Add(self.lblactualizar_procesos, pos=(1,2),span=(1,3), flag= wx.ALL, border=0)
         self.fgs.Add(self.lblclientes_abiertos, pos=(3,1),span=(1,1), flag= wx.ALL, border=0)
         self.fgs.Add(self.lblprocesos_abiertos, pos=(5,1),span=(1,1), flag= wx.ALL, border=0)
         self.fgs.Add(self.lblactuaciones_pend, pos=(7,1),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblactuacion, pos=(10,1),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lbldescripcion, pos=(10,2),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblfecha_actuacion, pos=(10,3),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblfecha_fin_termino, pos=(10,4),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblactuacion_relacionada, pos=(13,1),span=(1,3), flag= wx.ALL, border=5)
-        self.fgs.Add(self.lblactuacion_propia, pos=(15,1),span=(2,1), flag= wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=5)
-        self.fgs.Add(self.lblinfo_adicional, pos=(19,1),span=(1,3), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblestrategia, pos=(25,1),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblfecha_limite, pos=(25,2),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblestado, pos=(25,3),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lbrptaactuacion, pos=(11,1),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lbrptadescripcion, pos=(11,2),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lbrptafecha_actuacion, pos=(11,3),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lbrptafecha_fin_termino, pos=(11,4),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblactuacion, pos=(10,1),span=(1,1), flag= wx.ALL, border=2)
+        self.fgs.Add(self.lblrptaactuacion, pos=(10,2),span=(1,1), flag= wx.ALL, border=2)
+        self.fgs.Add(self.lbldescripcion, pos=(11,1),span=(1,1), flag= wx.ALL, border=2)
+        self.fgs.Add(self.txtdescripcion, pos=(11,2),span=(3,3), flag= wx.ALL | wx.EXPAND, border=2)
+        self.fgs.Add(self.lblfecha_actuacion, pos=(14,1),span=(1,1), flag= wx.ALL, border=2)
+        self.fgs.Add(self.lblrptafecha_actuacion, pos=(14,2),span=(1,1), flag= wx.ALL, border=2)
+        self.fgs.Add(self.lblfecha_fin_termino, pos=(15,1),span=(1,1), flag= wx.ALL, border=2)
+        self.fgs.Add(self.lblrptafecha_fin_termino, pos=(15,2),span=(1,1), flag= wx.ALL, border=2)
+        self.fgs.Add(self.lblactuacion_relacionada, pos=(17,1),span=(1,3), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblactuacion_propia, pos=(19,1),span=(2,1), flag= wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=5)
+        self.fgs.Add(self.lblinfo_adicional, pos=(23,1),span=(1,3), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblestrategia, pos=(29,1),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblfecha_limite, pos=(29,2),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblestado, pos=(29,3),span=(1,1), flag= wx.ALL, border=0)
         self.fgs.Add(self.comboclientes_abiertos, pos=(3,2),span=(1,1), flag= wx.ALL, border=0)
         self.fgs.Add(self.comboprocesos_abiertos, pos=(5,2),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.comboactuaciones_pend, pos=(7,2),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.comboactuacion_relacionada, pos=(13,4),span=(1,1), flag= wx.ALL, border=5)
-        self.fgs.Add(self.txtinfo_adicional, pos=(20,1),span=(4,4), flag= wx.ALL | wx.EXPAND, border=0)
-        self.fgs.Add(self.checkactuacion_propia_si, pos=(15,2),span=(1,1), flag= wx.ALL, border=5)
-        self.fgs.Add(self.checkactuacion_propia_no, pos=(16,2),span=(1,1), flag= wx.ALL, border=5)
-        self.fgs.Add(btn_actualizar, pos=(25,4),span=(1,1), flag= wx.ALL, border=5)
-        self.fgs.Add(btn_cancelar, pos=(26,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.comboactuaciones_pend, pos=(7,2),span=(1,3), flag= wx.ALL| wx.EXPAND, border=0)
+        self.fgs.Add(self.comboactuacion_relacionada, pos=(17,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.txtinfo_adicional, pos=(24,1),span=(4,4), flag= wx.ALL | wx.EXPAND, border=0)
+        self.fgs.Add(self.checkactuacion_propia_si, pos=(19,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.checkactuacion_propia_no, pos=(20,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(btn_actualizar, pos=(29,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(btn_cancelar, pos=(30,4),span=(1,1), flag= wx.ALL, border=5)
 
         self.checkactuacion_propia_si.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_propia_si)
         self.checkactuacion_propia_no.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_propia_no)
         
         self.comboclientes_abiertos.Bind(wx.EVT_COMBOBOX, self.get_open_client_process)
+        self.comboprocesos_abiertos.Bind(wx.EVT_COMBOBOX, self.get_open_actuaciones_process)
+        self.comboactuaciones_pend.Bind(wx.EVT_COMBOBOX, self.get_act_info)
         
         btn_actualizar.Bind(wx.EVT_BUTTON, self.Onactualizar)
         btn_cancelar.Bind(wx.EVT_BUTTON, self.Oncancelar)
@@ -219,11 +256,44 @@ class ww_actualizar_proceso(wx.Frame):
     
     def get_open_client_process(self, event):
         
-        
         cliente = self.comboclientes_abiertos.GetValue()
-        procesos_abiertos= get_client_process_open(cliente)
+        self.info_clients2= get_client_process_open(self.db_sheet,self.estado_abierto,self.id_clients, self.estado_clients, cliente)
+        procesos_abiertos=self.info_clients2[0]
+        self.radicados_ini=self.info_clients2[1]
+        
         self.comboprocesos_abiertos.Clear()
         self.comboprocesos_abiertos.AppendItems(procesos_abiertos)
+        
+    def get_open_actuaciones_process(self,event):
+        
+        radicado_ini = self.comboprocesos_abiertos.GetValue()
+        self.info_actuaciones= get_actuaciones_process_open(self.act_sheet,self.estado_abierto,radicado_ini)
+        actuaciones_abiertas= self.info_actuaciones[0]
+        
+        
+        self.index_actuaciones_abiertas=self.info_actuaciones[1]
+        self.comboactuaciones_pend.Clear()
+        self.comboactuaciones_pend.AppendItems(actuaciones_abiertas)
+    
+    def get_act_info(self,event):
+        index_opc_selec=self.comboactuaciones_pend.GetSelection()
+        
+    
+        actuacion=self.comboactuaciones_pend.GetValue()
+        descripcion=self.act_sheet.cell(row=(self.index_actuaciones_abiertas[index_opc_selec]+1),column=col_anotacion).value
+        fecha_actuacion=self.act_sheet.cell(row=(self.index_actuaciones_abiertas[index_opc_selec]+1),column=col_fecha_actuacion).value
+        fecha_fin=self.act_sheet.cell(row=(self.index_actuaciones_abiertas[index_opc_selec]+1),column=col_fecha_fin_termino).value
+        
+        self.lblrptaactuacion.SetLabel(actuacion)
+        if descripcion !=None:
+             self.txtdescripcion.SetValue(descripcion)   
+        
+        if fecha_actuacion !=None:
+            self.lblrptafecha_actuacion.SetLabel(fecha_actuacion)
+        
+        if fecha_fin !=None:
+            self.lblrptafecha_fin_termino.SetLabel(fecha_fin)
+        
     
     def Onactualizar(self,event):
         pass

@@ -60,7 +60,7 @@ col_fecha_ini_termino=6
 col_fecha_fin_termino=7
 col_fecha_registro=8
 col_estado=9
-estado_choices=['Ok','Pendiente']
+estado_choices=['Abierto','Cerrado']
 #-- Excel BD Actuaciones--#
 
 
@@ -597,7 +597,7 @@ def create_excel_file (process_number_given,flag_browser,flag_actuaciones,browse
     wb.save(new_path) 
     wb_db_actuaciones.save('Database-Actuaciones.xlsx')
     print('Excel creado exitosamente - OK')
-    print('Actuaciones guardas en la BD - OK')
+    print('Actuaciones guardadas en la BD - OK')
 
 
 
@@ -633,8 +633,6 @@ def encontrar_actuaciones():
     
         fila_radicado_ini=i+1
         radicado_ini=db_sheet.cell(row=fila_radicado_ini, column=col_radicado_ini).value
-        print('aca')
-        print(radicado_ini)
         tabla_detalle=browser.find_element_by_class_name('ActuacionesDetalle')
         
         #we have to substract 1 , due to cantidad_actuaciones is including the header.
@@ -690,7 +688,7 @@ def encontrar_actuaciones():
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_registro).value=browser.find_element_by_id(fecha_registro).text
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_estado).value=estado_choices[1]
      
-            print(lista_fecha_termina_nuevas)
+            
             browser.quit()
             #send_email('cinconotificaciones@gmail.com',lista_procesos_excel[i],lista_actuaciones_nuevas,lista_fecha_termina_nuevas)
             print('Emails Enviado')

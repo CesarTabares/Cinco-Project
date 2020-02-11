@@ -115,10 +115,8 @@ def make_others_list():
 
     return tipos_sujeto,tipos_persona,tipos_proceso, tipos_proceso_general, smmlv, tipos_estado
         
-def get_clients_open():
-    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
-    db_sheet=wb_database['Hoja1']
-    estados=make_others_list()
+def get_clients_info(db_sheet,estado_abierto):
+    
     
     list_id_clients=[]
     list_estado=[]
@@ -130,44 +128,54 @@ def get_clients_open():
     for cell in db_sheet['Z']:
         list_estado.append(cell.value)
     
-    index_clientes_abiertos=[i for i, value in enumerate(list_id_clients) if list_estado[i]==estados[5][1]]
-    
-    
-    
+    index_clientes_abiertos=[i for i, value in enumerate(list_id_clients) if list_estado[i]==estado_abierto]
+
     for i in index_clientes_abiertos:
         list_open_clients.append(list_id_clients[i])
     
     list_open_clients=sorted(list(set(list_open_clients)))
 
+    return list_open_clients,list_id_clients,list_estado
 
-    return list_open_clients
+def get_client_process_open(db_sheet,estado_abierto,list_id_clients,list_estado,client):
 
-def get_client_process_open(client):
-    
-    wb_database=openpyxl.load_workbook('Database-Process.xlsx')
-    db_sheet=wb_database['Hoja1']
-    estados=make_others_list()
-    
     lista_procesos_abierto_cliente=[]
     lista_radicado_ini=[]
-    list_id_clients=[]
-    list_estado=[]
     
-    for cell in db_sheet['X']:
-        list_id_clients.append(cell.value)
-        
-    for cell in db_sheet['Z']:
-        list_estado.append(cell.value)  
-        
     for cell in db_sheet['B']:
         lista_radicado_ini.append(cell.value)
     
-    index_procesos_abiertos=[i for i, value in enumerate(list_id_clients) if list_estado[i]==estados[5][1] and list_id_clients[i]==client]   
+    index_procesos_abiertos=[i for i, value in enumerate(list_id_clients) if list_estado[i]==estado_abierto and list_id_clients[i]==client]   
 
     for i in index_procesos_abiertos:
         lista_procesos_abierto_cliente.append(lista_radicado_ini[i])
     
-    return lista_procesos_abierto_cliente
+    return lista_procesos_abierto_cliente, lista_radicado_ini
+
+def get_actuaciones_process_open(act_sheet,estado_abierto,radicado_ini):
+    
+    
+    lista_radicado_ini_actsheet=[]
+    lista_actuaciones_actsheet=[]
+    lista_estados_actsheet=[]
+    
+    lista_actuaciones_proceso=[]
+    
+    for cell in act_sheet['B']:
+        lista_radicado_ini_actsheet.append(cell.value)
+        
+    for cell in act_sheet['D']:
+        lista_actuaciones_actsheet.append(cell.value)
+        
+    for cell in act_sheet['I']:
+        lista_estados_actsheet.append(cell.value)
+    
+    index_actuaciones_abiertas_proceso=[i for i, value in enumerate(lista_actuaciones_actsheet) if lista_estados_actsheet[i]==estado_abierto and lista_radicado_ini_actsheet[i]==radicado_ini]
+    
+    for i in index_actuaciones_abiertas_proceso:
+        lista_actuaciones_proceso.append(lista_actuaciones_actsheet[i])
+    
+    return lista_actuaciones_proceso,index_actuaciones_abiertas_proceso
     
  
         
