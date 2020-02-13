@@ -51,15 +51,18 @@ col_nombre_cliente=25
 #-- Excel BD Procesos--#
 
 #-- Excel BD Actuaciones--#
-col_numero_proceso=1
-col_radicado_ini_act=2
-col_fecha_actuacion=3
-col_actuacion=4
-col_anotacion=5
-col_fecha_ini_termino=6
-col_fecha_fin_termino=7
-col_fecha_registro=8
-col_estado=9
+col_id_actuacion=1
+col_numero_proceso=2
+col_radicado_ini_act=3
+col_fecha_actuacion=4
+col_actuacion=5
+col_anotacion=6
+col_fecha_ini_termino=7
+col_fecha_fin_termino=8
+col_fecha_registro=9
+col_estado=10
+col_grupo=11
+col_principal=12
 estado_choices=['Abierto','Cerrado']
 #-- Excel BD Actuaciones--#
 
@@ -549,6 +552,7 @@ def create_excel_file (process_number_given,flag_browser,flag_actuaciones,browse
     for i in range (len(lista_fecha_actuaciones)):
                 
         if flag_actuaciones==0:
+            actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_id_actuacion).value=empty_row_actuaciones+i
             actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_numero_proceso).value=process_number_given
             actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_fecha_actuacion).value=lista_fecha_actuaciones[i]
             actuaciones_sheet.cell(row=(empty_row_actuaciones+i),column=col_actuacion).value=lista_actuaciones[i]
@@ -617,10 +621,10 @@ def encontrar_actuaciones():
         if cell.value !=None:
             lista_procesos_excel.append(cell.value)
         
-    lista_actuaciones_excel=[]
+    lista_proceso_actuaciones_excel=[]
     
-    for cell in actuaciones_sheet['A']:
-        lista_actuaciones_excel.append(cell.value)
+    for cell in actuaciones_sheet['B']:
+        lista_proceso_actuaciones_excel.append(cell.value)
     
     
     for i in range (1,len(lista_procesos_excel)):
@@ -637,7 +641,7 @@ def encontrar_actuaciones():
         
         #we have to substract 1 , due to cantidad_actuaciones is including the header.
         cantidad_actuaciones_web=len(tabla_detalle.find_elements_by_tag_name('tr'))-1
-        cant_actuaciones_excel=lista_actuaciones_excel.count(lista_procesos_excel[i])
+        cant_actuaciones_excel=lista_proceso_actuaciones_excel.count(lista_procesos_excel[i])
 
         if cantidad_actuaciones_web>cant_actuaciones_excel:
             create_excel_file(lista_procesos_excel[i],flag_browser=1,flag_actuaciones=1,browser=browser)
@@ -653,7 +657,7 @@ def encontrar_actuaciones():
             empty_row_actuaciones=1
             while (actuaciones_sheet.cell(row = empty_row_actuaciones, column = 1).value != None) :
               empty_row_actuaciones += 1
-            
+            print(empty_row_actuaciones)
          
             #we have to substract 1 , due to cantidad_actuaciones is including the header.
             for j in range(cant_nuevas_actuaciones):
@@ -678,6 +682,7 @@ def encontrar_actuaciones():
                 fecha_registro += str(j)
                 #lista_fecha_registro.append(browser.find_element_by_id(fecha_registro).text)
             
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_id_actuacion).value=(empty_row_actuaciones+j-1)
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_numero_proceso).value=lista_procesos_excel[i]
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_radicado_ini_act).value=radicado_ini
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_actuacion).value=browser.find_element_by_id(fecha_actuacion).text
@@ -686,7 +691,7 @@ def encontrar_actuaciones():
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_ini_termino).value=browser.find_element_by_id(fecha_inicia).text
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_fin_termino).value=browser.find_element_by_id(fecha_termina).text
                 actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_fecha_registro).value=browser.find_element_by_id(fecha_registro).text
-                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_estado).value=estado_choices[1]
+                actuaciones_sheet.cell(row=(empty_row_actuaciones+j),column=col_estado).value=estado_choices[0]
      
             
             browser.quit()

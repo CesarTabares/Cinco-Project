@@ -158,24 +158,48 @@ def get_actuaciones_process_open(act_sheet,estado_abierto,radicado_ini):
     lista_radicado_ini_actsheet=[]
     lista_actuaciones_actsheet=[]
     lista_estados_actsheet=[]
+    lista_grupo_actsheet=[]
+    lista_principales=[]
+    dic_actuaciones_grupos_ppal={}
     
     lista_actuaciones_proceso=[]
+    grupos_numeros=[]
+    grupos_actuaciones=[]
     
-    for cell in act_sheet['B']:
+    for cell in act_sheet['C']:
         lista_radicado_ini_actsheet.append(cell.value)
         
-    for cell in act_sheet['D']:
+    for cell in act_sheet['E']:
         lista_actuaciones_actsheet.append(cell.value)
         
-    for cell in act_sheet['I']:
+    for cell in act_sheet['J']:
         lista_estados_actsheet.append(cell.value)
     
+    for cell in act_sheet['K']:
+        lista_grupo_actsheet.append(cell.value)
+        
+    for cell in act_sheet['L']:
+        lista_principales.append(cell.value)
+    
     index_actuaciones_abiertas_proceso=[i for i, value in enumerate(lista_actuaciones_actsheet) if lista_estados_actsheet[i]==estado_abierto and lista_radicado_ini_actsheet[i]==radicado_ini]
+    
+    for i in range(len(act_sheet['A'])):
+        if lista_radicado_ini_actsheet[i]==radicado_ini and lista_grupo_actsheet[i] != None:
+            grupos_numeros.append(lista_grupo_actsheet[i])
+    
+    grupos_numeros=list(set(grupos_numeros))
+    
+    for i in range(len(act_sheet['A'])):
+        if lista_principales[i]=='Si'and lista_radicado_ini_actsheet[i]==radicado_ini:
+            dic_actuaciones_grupos_ppal[lista_actuaciones_actsheet[i]]=lista_grupo_actsheet[i]
+            grupos_actuaciones.append(lista_actuaciones_actsheet[i])
+    
+    list_actuaciones_grupos_ppal=list(dic_actuaciones_grupos_ppal.keys())
     
     for i in index_actuaciones_abiertas_proceso:
         lista_actuaciones_proceso.append(lista_actuaciones_actsheet[i])
     
-    return lista_actuaciones_proceso,index_actuaciones_abiertas_proceso
+    return lista_actuaciones_proceso,index_actuaciones_abiertas_proceso,list_actuaciones_grupos_ppal,dic_actuaciones_grupos_ppal,grupos_numeros
     
  
         

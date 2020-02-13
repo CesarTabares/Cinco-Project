@@ -38,15 +38,18 @@ col_nit_cliente=24
 col_nombre_cliente=25
 
 #-- Excel BD Actuaciones--#
-col_numero_proceso=1
-col_radicado_ini_act=2
-col_fecha_actuacion=3
-col_actuacion=4
-col_anotacion=5
-col_fecha_ini_termino=6
-col_fecha_fin_termino=7
-col_fecha_registro=8
-col_estado=9
+col_id_actuacion=1
+col_numero_proceso=2
+col_radicado_ini_act=3
+col_fecha_actuacion=4
+col_actuacion=5
+col_anotacion=6
+col_fecha_ini_termino=7
+col_fecha_fin_termino=8
+col_fecha_registro=9
+col_estado=10
+col_grupo=11
+col_principal=12
 estado_choices=['Abierto','Cerrado']
 #-- Excel BD Actuaciones--#
 
@@ -144,8 +147,8 @@ class ww_actualizar_proceso(wx.Frame):
         wb_database=openpyxl.load_workbook('Database-Process.xlsx')
         self.db_sheet=wb_database['Hoja1']
         
-        wb_actuaciones=openpyxl.load_workbook('Database-Actuaciones.xlsx')
-        self.act_sheet=wb_actuaciones['Actuaciones']
+        self.wb_actuaciones=openpyxl.load_workbook('Database-Actuaciones.xlsx')
+        self.act_sheet=self.wb_actuaciones['Actuaciones']
         
         estados=make_others_list()
         self.estado_abierto=estados[5][1]
@@ -175,6 +178,7 @@ class ww_actualizar_proceso(wx.Frame):
         self.lblfecha_fin_termino=wx.StaticText(self.panel, label='Fecha Fin Termino')
         self.lblrptafecha_fin_termino=wx.StaticText(self.panel, label='')
         self.lblactuacion_relacionada=wx.StaticText(self.panel, label='¿La actuacion esta relacionada con algunas de las actuaciones anteriores?')
+        self.lblseleccione_actuacion_relacionada=wx.StaticText(self.panel, label='Seleccione Actuacion a Relacionar')
         self.lblactuacion_propia=wx.StaticText(self.panel, label='¿La actuacion es Propia?')
         self.lblinfo_adicional=wx.StaticText(self.panel, label='Informacion Adicional')
         self.lblestrategia=wx.StaticText(self.panel, label='Estrategia')
@@ -187,10 +191,13 @@ class ww_actualizar_proceso(wx.Frame):
         self.comboclientes_abiertos=wx.ComboBox(self.panel,value='', choices=list_clients_open)
         self.comboprocesos_abiertos=wx.ComboBox(self.panel,value='', choices=[])
         self.comboactuaciones_pend=wx.ComboBox(self.panel,value='', choices=[])
-        self.comboactuacion_relacionada=wx.ComboBox(self.panel,value='', choices=[])
+        self.comboactuacion_relacionada=wx.ComboBox(self.panel, value='', choices=[])
         self.txtinfo_adicional=wx.TextCtrl(self.panel,style=wx.TE_MULTILINE)
         self.checkactuacion_propia_si=wx.CheckBox(self.panel, label= "Si")
         self.checkactuacion_propia_no=wx.CheckBox(self.panel, label= "No")
+        self.checkactuacion_relacionada_si=wx.CheckBox(self.panel, label= "Si")
+        self.checkactuacion_relacionada_no=wx.CheckBox(self.panel, label= "No")
+        
         
         btn_actualizar = wx.Button(self.panel, label="Actualizar",size=(-1,-1))
         btn_cancelar=wx.Button(self.panel, label="Cancelar",size=(-1,-1))
@@ -210,49 +217,59 @@ class ww_actualizar_proceso(wx.Frame):
         self.fgs.Add(self.lblactuacion, pos=(10,1),span=(1,1), flag= wx.ALL, border=2)
         self.fgs.Add(self.lblrptaactuacion, pos=(10,2),span=(1,1), flag= wx.ALL, border=2)
         self.fgs.Add(self.lbldescripcion, pos=(11,1),span=(1,1), flag= wx.ALL, border=2)
-        self.fgs.Add(self.txtdescripcion, pos=(11,2),span=(3,3), flag= wx.ALL | wx.EXPAND, border=2)
+        self.fgs.Add(self.txtdescripcion, pos=(11,2),span=(3,4), flag= wx.ALL | wx.EXPAND, border=2)
         self.fgs.Add(self.lblfecha_actuacion, pos=(14,1),span=(1,1), flag= wx.ALL, border=2)
         self.fgs.Add(self.lblrptafecha_actuacion, pos=(14,2),span=(1,1), flag= wx.ALL, border=2)
         self.fgs.Add(self.lblfecha_fin_termino, pos=(15,1),span=(1,1), flag= wx.ALL, border=2)
         self.fgs.Add(self.lblrptafecha_fin_termino, pos=(15,2),span=(1,1), flag= wx.ALL, border=2)
-        self.fgs.Add(self.lblactuacion_relacionada, pos=(17,1),span=(1,3), flag= wx.ALL, border=5)
-        self.fgs.Add(self.lblactuacion_propia, pos=(19,1),span=(2,1), flag= wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=5)
-        self.fgs.Add(self.lblinfo_adicional, pos=(23,1),span=(1,3), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblestrategia, pos=(29,1),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblfecha_limite, pos=(29,2),span=(1,1), flag= wx.ALL, border=0)
-        self.fgs.Add(self.lblestado, pos=(29,3),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblactuacion_relacionada, pos=(16,1),span=(2,3), flag= wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=5)
+        self.fgs.Add(self.lblseleccione_actuacion_relacionada, pos=(18,1),span=(1,2), flag= wx.ALL, border=5)
+        self.fgs.Add(self.lblactuacion_propia, pos=(20,1),span=(2,1), flag= wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=5)
+        self.fgs.Add(self.lblinfo_adicional, pos=(24,1),span=(1,3), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblestrategia, pos=(30,1),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblfecha_limite, pos=(30,2),span=(1,1), flag= wx.ALL, border=0)
+        self.fgs.Add(self.lblestado, pos=(30,3),span=(1,1), flag= wx.ALL, border=0)
         self.fgs.Add(self.comboclientes_abiertos, pos=(3,2),span=(1,1), flag= wx.ALL, border=0)
         self.fgs.Add(self.comboprocesos_abiertos, pos=(5,2),span=(1,1), flag= wx.ALL, border=0)
         self.fgs.Add(self.comboactuaciones_pend, pos=(7,2),span=(1,3), flag= wx.ALL| wx.EXPAND, border=0)
-        self.fgs.Add(self.comboactuacion_relacionada, pos=(17,4),span=(1,1), flag= wx.ALL, border=5)
-        self.fgs.Add(self.txtinfo_adicional, pos=(24,1),span=(4,4), flag= wx.ALL | wx.EXPAND, border=0)
-        self.fgs.Add(self.checkactuacion_propia_si, pos=(19,2),span=(1,1), flag= wx.ALL, border=5)
-        self.fgs.Add(self.checkactuacion_propia_no, pos=(20,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.comboactuacion_relacionada, pos=(18,3),span=(1,3), flag= wx.ALL| wx.EXPAND, border=5)
+        self.fgs.Add(self.txtinfo_adicional, pos=(25,1),span=(4,4), flag= wx.ALL | wx.EXPAND, border=0)
+        self.fgs.Add(self.checkactuacion_propia_si, pos=(20,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.checkactuacion_propia_no, pos=(21,2),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.checkactuacion_relacionada_si, pos=(16,4),span=(1,1), flag= wx.ALL, border=5)
+        self.fgs.Add(self.checkactuacion_relacionada_no, pos=(17,4),span=(1,1), flag= wx.ALL, border=5)
         self.fgs.Add(btn_actualizar, pos=(29,4),span=(1,1), flag= wx.ALL, border=5)
         self.fgs.Add(btn_cancelar, pos=(30,4),span=(1,1), flag= wx.ALL, border=5)
 
         self.checkactuacion_propia_si.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_propia_si)
         self.checkactuacion_propia_no.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_propia_no)
+        self.checkactuacion_relacionada_si.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_relacionada_si)
+        self.checkactuacion_relacionada_no.Bind(wx.EVT_CHECKBOX, self.oncheckactuacion_relacionada_no)
         
+               
         self.comboclientes_abiertos.Bind(wx.EVT_COMBOBOX, self.get_open_client_process)
         self.comboprocesos_abiertos.Bind(wx.EVT_COMBOBOX, self.get_open_actuaciones_process)
         self.comboactuaciones_pend.Bind(wx.EVT_COMBOBOX, self.get_act_info)
-        
-        btn_actualizar.Bind(wx.EVT_BUTTON, self.Onactualizar)
-        btn_cancelar.Bind(wx.EVT_BUTTON, self.Oncancelar)
-        
 
         mainSizer= wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(self.fgs,0, flag=wx.ALIGN_LEFT)
         self.panel.SetSizerAndFit(mainSizer)
+        
+        self.lblseleccione_actuacion_relacionada.Hide()
+        self.comboactuacion_relacionada.Hide()
+        
+        btn_actualizar.Bind(wx.EVT_BUTTON, self.Onactualizar)
+        btn_cancelar.Bind(wx.EVT_BUTTON, self.Oncancelar)
 
     def oncheckactuacion_propia_si(self,event):
         if self.checkactuacion_propia_no.IsChecked():
             self.checkactuacion_propia_no.SetValue(False)
     
     def oncheckactuacion_propia_no(self,event):
-            if self.checkactuacion_propia_si.IsChecked():
-                self.checkactuacion_propia_si.SetValue(False)
+
+        if self.checkactuacion_propia_si.IsChecked():
+            self.checkactuacion_propia_si.SetValue(False)
+                          
     
     def get_open_client_process(self, event):
         
@@ -270,6 +287,9 @@ class ww_actualizar_proceso(wx.Frame):
         self.info_actuaciones= get_actuaciones_process_open(self.act_sheet,self.estado_abierto,radicado_ini)
         actuaciones_abiertas= self.info_actuaciones[0]
         
+        grupos_actuaciones=self.info_actuaciones[2]
+        self.comboactuacion_relacionada.Clear()
+        self.comboactuacion_relacionada.AppendItems(grupos_actuaciones)
         
         self.index_actuaciones_abiertas=self.info_actuaciones[1]
         self.comboactuaciones_pend.Clear()
@@ -277,14 +297,15 @@ class ww_actualizar_proceso(wx.Frame):
     
     def get_act_info(self,event):
         index_opc_selec=self.comboactuaciones_pend.GetSelection()
+        self.index_actuacion_selec=self.index_actuaciones_abiertas[index_opc_selec]
         
-    
         actuacion=self.comboactuaciones_pend.GetValue()
         descripcion=self.act_sheet.cell(row=(self.index_actuaciones_abiertas[index_opc_selec]+1),column=col_anotacion).value
         fecha_actuacion=self.act_sheet.cell(row=(self.index_actuaciones_abiertas[index_opc_selec]+1),column=col_fecha_actuacion).value
         fecha_fin=self.act_sheet.cell(row=(self.index_actuaciones_abiertas[index_opc_selec]+1),column=col_fecha_fin_termino).value
         
         self.lblrptaactuacion.SetLabel(actuacion)
+        
         if descripcion !=None:
              self.txtdescripcion.SetValue(descripcion)   
         
@@ -293,10 +314,43 @@ class ww_actualizar_proceso(wx.Frame):
         
         if fecha_fin !=None:
             self.lblrptafecha_fin_termino.SetLabel(fecha_fin)
+    
+    def oncheckactuacion_relacionada_si(self,event):
+        self.lblseleccione_actuacion_relacionada.Show()
+        self.comboactuacion_relacionada.Show()
+        
+        
+        if self.checkactuacion_relacionada_no.IsChecked():
+            self.checkactuacion_relacionada_no.SetValue(False)
+            
+    
+    def oncheckactuacion_relacionada_no(self,event):
+        self.lblseleccione_actuacion_relacionada.Hide()
+        self.comboactuacion_relacionada.Hide()
+
+        if self.checkactuacion_relacionada_si.IsChecked():
+            self.checkactuacion_relacionada_si.SetValue(False)
         
     
     def Onactualizar(self,event):
-        pass
+        actuacion=self.comboactuacion_relacionada.GetValue()
+        dic_act_grupo=self.info_actuaciones[3]
+        grupos_actuaciones=self.info_actuaciones[4]
+        
+        if self.checkactuacion_relacionada_si.GetValue()==True:
+            self.act_sheet.cell(row=(self.index_actuacion_selec+1),column=col_principal).value='No'
+            self.act_sheet.cell(row=(self.index_actuacion_selec+1),column=col_grupo).value=dic_act_grupo[actuacion]
+        elif self.checkactuacion_relacionada_no.GetValue()==True:
+            self.act_sheet.cell(row=(self.index_actuacion_selec+1),column=col_principal).value='Si'
+            self.act_sheet.cell(row=(self.index_actuacion_selec+1),column=col_grupo).value=(max(grupos_actuaciones)+1)
+        
+        self.comboclientes_abiertos.SetValue("")
+        self.comboprocesos_abiertos.SetValue("")
+        self.comboactuaciones_pend.SetValue("")
+        self.checkactuacion_relacionada_no.SetValue(False)
+        self.checkactuacion_relacionada_si.SetValue(False)
+        
+        self.wb_actuaciones.save('Database-Actuaciones.xlsx')
     
     def Oncancelar(self,event):
         pass
