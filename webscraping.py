@@ -63,6 +63,7 @@ col_fecha_registro=9
 col_estado=10
 col_grupo=11
 col_principal=12
+col_actuacion_propia=13
 estado_choices=['Abierto','Cerrado']
 #-- Excel BD Actuaciones--#
 
