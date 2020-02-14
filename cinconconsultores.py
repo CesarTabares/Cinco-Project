@@ -8,9 +8,10 @@ from selenium import webdriver
 import wx
 import time
 import openpyxl
+import os
 from webscraping import asignar_nro_proceso, get_the_web, encontrar_actuaciones
 from get_lists import get_cities_entities_web, make_cities_entities_dictionary, make_others_list, get_clients_info, get_client_process_open,get_actuaciones_process_open
-import os
+from pubsub import pub
 
 col_radicado_ini=2
 col_radicado_completo=3
@@ -54,6 +55,15 @@ col_actuacion_propia=13
 estado_choices=['Abierto','Cerrado']
 #-- Excel BD Actuaciones--#
 
+#-- Excel Usuarios--#
+col_nombre=1
+col_usuario=2
+col_correo=3
+col_rol=4
+col_tipo_usuario=5
+
+
+#-- Excel Usuarios--#
 
 DB = openpyxl.load_workbook('Database-Process.xlsx')
 sheet = DB['Hoja1']
@@ -85,7 +95,9 @@ class MyFrame(wx.Frame):
             print ("Image file %s not found"  )
             raise SystemExit
             
-            
+       
+        
+        
         button = wx.Button(self.panel, id=wx.ID_ANY, label="Ingresar Proceso" ,pos=(900, 100), size=(200, 50))
         button.Bind(wx.EVT_BUTTON, self.Ingresarproceso)
         
@@ -101,9 +113,24 @@ class MyFrame(wx.Frame):
         btn_actualizar_proceso = wx.Button(self.panel, id=wx.ID_ANY, label="Actualizar Proceso" ,pos=(900, 300), size=(200, 50))
         btn_actualizar_proceso.Bind(wx.EVT_BUTTON, self.onBtn_actualizar_proceso)
         
+        btn_usuarios = wx.Button(self.panel, id=wx.ID_ANY, label="Usuarios" ,pos=(900, 350), size=(200, 50))
+        btn_usuarios.Bind(wx.EVT_BUTTON, self.onBtn_usuarios)
+        
         ico = wx.Icon('Icono.ico', wx.BITMAP_TYPE_ICO)
         self.SetIcon(ico)
+        
+        pub.subscribe(self.myListener, "frameListener")
+        
+        # Ask user to login
+        dlg = LoginDialog()
+        dlg.ShowModal()
 
+    def myListener(self, message, arg2=None):
+        """
+        Show the frame
+        """
+        self.Show()
+    
     
     #-------------Button Functions-----------------#
     def Ingresarproceso(self, event):
@@ -122,6 +149,9 @@ class MyFrame(wx.Frame):
         
     def onBtn_actualizar_proceso(self, event):
         ww_actualizar_proceso(parent=self.panel).Show()
+    
+    def onBtn_usuarios(self, event):
+        ww_Users(parent=self.panel).Show()
                 
     #-------------Button Functions-----------------#    
         
@@ -872,12 +902,145 @@ class ww_Consultar_Proceso(wx.Frame):
         workbook_path=os.getcwd()+'/Procesos/'+ numero_consulta + '.xlsx'
         os.startfile(workbook_path)
         
+        
+        
+ 
+#################################LOG IN ##########################################   
+class LoginDialog(wx.Dialog):
+    """
+    Class to define login dialog
+    """
+    #----------------------------------------------------------------------
+    def __init__(self):
+        """Constructor"""
+        wx.Dialog.__init__(self, None, title="Login")
+        self.Center()
+        # user info
+        user_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        user_lbl = wx.StaticText(self, label="Username:")
+        user_sizer.Add(user_lbl, 0, wx.ALL|wx.CENTER, 5)
+        self.user = wx.TextCtrl(self)
+        user_sizer.Add(self.user, 0, wx.ALL, 5)
+        
+        # pass info
+        p_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        p_lbl = wx.StaticText(self, label="Password:")
+        p_sizer.Add(p_lbl, 0, wx.ALL|wx.CENTER, 5)
+        self.password = wx.TextCtrl(self, style=wx.TE_PASSWORD|wx.TE_PROCESS_ENTER)
+        p_sizer.Add(self.password, 0, wx.ALL, 5)
+        
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(user_sizer, 0, wx.ALL, 5)
+        main_sizer.Add(p_sizer, 0, wx.ALL, 5)
+        
+        btn = wx.Button(self, label="Login")
+        btn.Bind(wx.EVT_BUTTON, self.onLogin)
+        main_sizer.Add(btn, 0, wx.ALL|wx.CENTER, 5)
+        
+        self.SetSizer(main_sizer)
+        
+    #----------------------------------------------------------------------
+    def onLogin(self, event):
+        """
+        Check credentials and login
+        """
+        stupid_password = "12"
+        user_password = self.password.GetValue()
+        if user_password == stupid_password:
+            print ("You are now logged in!")
+            pub.sendMessage("frameListener", message="show")
+            self.Destroy()
+        else:
+            print ("Username or password is incorrect!")
+            
+#################################LOG IN ##########################################
+
+class ww_Users(wx.Frame):   
+    
+    def __init__(self,parent):
+        
+        wb_users=openpyxl.load_workbook('Usuarios.xlsx')
+        sheet_users=wb_users['Usuarios']
+        
+        wx.Frame.__init__(self, None, wx.ID_ANY, "Usuarios", size=(700, 700),style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))  
+        
+        bold_font= wx.Font(70, wx.FONTFAMILY_DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        try:
+            
+            #image_file = 'CINCO CONSULTORES.jpg'
+            #bmp1 = wx.Image(
+                #image_file, 
+                #wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            
+            #self.panel = wx.StaticBitmap(
+                #self, -1, bmp1, (0, 0)
+            self.panel=wx.Panel(self)
+            self.panel.SetBackgroundColour('white')
+            self.Center()
+        except IOError:
+            print ("Image file %s not found"  )
+            raise SystemExit
+        
+        ico = wx.Icon('Icono.ico', wx.BITMAP_TYPE_ICO)
+        self.SetIcon(ico)
+        self.fgs= wx.GridBagSizer(0,0)
+
+        lista_nombres=[]
+        lista_usuarios=[]
+        lista_correos=[]
+        lista_roles=[]
+        lista_tipo_usuarios=[]
+        
+        rows=[]
+        ctrls=[]
+        
+        for row in sheet_users.iter_rows(max_col=4):
+            lbls=[]
+            for cell in row:
+                lbls.append(cell.value)
+            rows.append(lbls)
+
+        
+        for cell in sheet_users['A']:
+            lista_nombres.append(cell.value)
+            
+        for cell in sheet_users['B']:
+            lista_usuarios.append(cell.value)
+        
+        for cell in sheet_users['C']:
+            lista_correos.append(cell.value)
+        
+        for cell in sheet_users['D']:
+            lista_roles.append(cell.value)
+        
+        for cell in sheet_users['E']:
+            lista_tipo_usuarios.append(cell.value)
+        
+        for i in range(len(rows)):
+            for j in range(len(rows[0])):
+                if i == 0:
+                    ctrls.append(wx.StaticText(self.panel, label=rows[i][j]))
+                    self.fgs.Add(ctrls[-1], pos=((3+i),(2+j)), span=(1,1),flag= wx.ALL | wx.ALIGN_CENTER, border=5 )
+                    ctrls[j].SetFont(bold_font)
+                else:
+                    ctrls.append(wx.StaticText(self.panel, label=rows[i][j]))
+                    self.fgs.Add(ctrls[-1], pos=((3+i),(2+j)), span=(1,1),flag= wx.ALL | wx.ALIGN_LEFT , border=5 )
+  
+        
+        
+        mainSizer= wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(self.fgs,0, flag=wx.ALIGN_LEFT)
+        self.panel.SetSizerAndFit(mainSizer)
+       
 class MyApp(wx.App):
     def OnInit(self):
         self.frame= MyFrame()
         self.frame.Show()
         return True       
 # Run the program     
+
 app=MyApp()
 app.MainLoop()
 del app

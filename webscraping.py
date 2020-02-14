@@ -696,7 +696,7 @@ def encontrar_actuaciones():
      
             
             browser.quit()
-            #send_email('cinconotificaciones@gmail.com',lista_procesos_excel[i],lista_actuaciones_nuevas,lista_fecha_termina_nuevas)
+            send_email('cinconotificaciones@gmail.com',lista_procesos_excel[i],lista_actuaciones_nuevas,lista_fecha_termina_nuevas)
             print('Emails Enviado')
             wb_db_actuaciones.save('Database-Actuaciones.xlsx')
             print('Proceso ' + lista_procesos_excel[i] +' Actualizado')
